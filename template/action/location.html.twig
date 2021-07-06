@@ -1,0 +1,195 @@
+{% set title = location.data.name %}
+{% extends 'page.html.twig' %}
+
+{% macro outputItem(item, location, heading, query) %}
+{% set first = item.data.availability|first.from %}
+<div class="record">
+    <a href="{{ url_for('item', {'location': location.slug, 'item': item.slug}) }}{% if query.date %}?date={{ first|date("Y-m-d") }}{% if query.time %}&amp;time={{ first|date("H:i") }}{% endif %}{% endif %}">
+        <div class="record-details">
+            <{{ heading }} class="record-title">{{ item.data.name }}</{{ heading }}>
+            <div class="record-description">
+                <ul class="list-inline">
+                    {% if item.data.capacity %}<li>Capacity: {{ item.data.capacity }}</li>{% endif %}
+                    {% if item.data.isAccessible %}<li>Accessible Space</li>{% endif %}
+                    {% if item.data.isPowered %}<li>Power Available</li>{% endif %}
+                </ul>
+                {{ item.data.description|raw }}
+                <div><strong>Available on {{ first|date('l, F j \\a\\t g:i A') }}</strong></div>
+            </div>
+        </div>
+        {% if item.data.image %}
+        <div class="record-image" style="background-image:url({{ item.data.image }})"></div>
+        {% endif %}
+    </a>
+</div>
+{% endmacro %}
+
+{% block styles %}
+{{ parent() }}
+<style>
+.record-description ul { font-weight: bold }
+.record-description ul li:after { content: ", " }
+.record-description ul li:last-child:after { content: none }
+form input[type="range"] { vertical-align: middle }
+form input[type="text"] { width: 100%; }
+form p { white-space: nowrap; }
+form .icon-remove { left: -24px; position: relative; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+<script src="https://lib.bgsu.edu/template/1.3.2/flatpickr.js"></script>
+<script>
+(function (field, clear) {
+    var toggle = function(selectedDates, dateStr, instance) {
+        if (dateStr === '') {
+            clear.style.display = 'none';
+        } else {
+            clear.style.display = 'inline';
+        }
+    }
+
+    bgsu_flatpickr.setup(field, {
+        altFormat: 'h:i K',
+        altInput: true,
+        dateFormat: "H:i",
+        enableTime: true,
+        noCalendar: true,
+        onChange: toggle,
+        onReady: toggle
+    });
+
+    clear.onclick = function() {
+        field._flatpickr.clear();
+        return false;
+    };
+})(
+    document.getElementById('time'),
+    document.getElementById('time-clear')
+);
+
+(function (field, clear) {
+    var toggle = function(selectedDates, dateStr, instance) {
+        if (dateStr === '') {
+            clear.style.display = 'none';
+        } else {
+            clear.style.display = 'inline';
+        }
+
+        var time = document.getElementById('time');
+
+        if (time._flatpickr) {
+            if (dateStr === '') {
+                time._flatpickr.clear();
+                time._flatpickr._input.setAttribute('disabled', 'disabled');
+            } else {
+                time._flatpickr._input.removeAttribute('disabled');
+            }
+        }
+    }
+
+    bgsu_flatpickr.setup(field, {
+        altFormat: 'F j, Y',
+        altInput: true,
+        minDate: '{{ location.availability|date("Y-m-d") }}',
+        maxDate: '{{ "+6 months"|date("Y-m-d") }}',
+        onChange: toggle,
+        onReady: toggle
+    });
+
+    clear.onclick = function() {
+        field._flatpickr.clear();
+        return false;
+    };
+})(
+    document.getElementById('date'),
+    document.getElementById('date-clear')
+);
+
+(function(capacity) {
+    capacity.oninput = function() {
+        this.nextElementSibling.value = this.value > 1 ? this.value : 'None';
+    }
+
+    capacity.oninput();
+})(document.getElementById('capacity'));
+
+</script>
+{% endblock %}
+
+{% block content %}
+{{ parent() }}
+<nav aria-label="breadcrumb">
+    <ol class="list-breadcrumb">
+        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li aria-current="page">{{ title }}</li>
+    </ol>
+</nav>
+
+<div class="sidebar">
+    <div class="sidebar-left">
+        <h2 class="sidebar-title">Narrow Options</h2>
+        <form method="get" action="{{ url_for('location', {location: location.slug}) }}">
+            <p>
+                <label for="date">Date:</label><br>
+                <input type="text" name="date" id="date" value="{{ query.date }}">
+                <a id="date-clear" class="icon icon-remove" href="#" title="Clear Date"></a>
+            </p>
+            <p>
+                <label for="date">Time:</label><br>
+                <input type="text" name="time" id="time" value="{{ query.time }}">
+                <a id="time-clear" class="icon icon-remove" href="#" title="Clear Time"></a>
+            </p>
+            {% if location.capacity > 1 %}
+            <p>
+                <label for="capacity">Minimum Capacity:</label><br>
+                <input type="range" name="capacity" id="capacity" min="1" max="{{ location.capacity }}" value="{{ query.capacity ?: 1 }}">
+                <output>None</output>
+            </p>
+            {% endif %}
+            <p>
+                Limit to:<br>
+                <input type="checkbox" name="accessible" id="accessible"{% if query.accessible %} checked{% endif %}>
+                <label for="accessible">Accessible Space</label><br>
+                <input type="checkbox" name="powered" id="powered"{% if query.powered %} checked{% endif %}>
+                <label for="powered">Power Available</label>
+            </p>
+            <button type="submit" class="button button-primary">Update</button>
+        </form>
+    </div>
+    <div>
+        <div class="records records-list">
+            {% if location.items %}
+            {% if location.zones|length > 1 %}
+            {% for zone in location.zones %}
+            <h2>{{ zone.data.name }}</h2>
+            {% for item in location.items %}
+            {% if item.data.zoneId == zone.data.id %}
+            {{ _self.outputItem(item, location, 'h3', query) }}
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+            {% elseif location.categories|length > 1 %}
+            {% for category in location.categories %}
+            <h2>{{ category.data.name }}</h2>
+            {% for item in location.items %}
+            {% if item.data.groupId == category.data.cid %}
+            {{ _self.outputItem(item, location, 'h3', query) }}
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+            {% else %}
+            {% for item in location.items %}
+            {{ _self.outputItem(item, location, 'h2', query) }}
+            {% endfor %}
+            {% endif %}
+            {% else %}
+            <div class="alert alert-failure">
+            No options were found.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

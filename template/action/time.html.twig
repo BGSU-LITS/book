@@ -1,0 +1,102 @@
+{% set title = datepoint|date('l, F j, Y') ~ ' at ' ~ datepoint|date('g:ia') %}
+{% extends 'page.html.twig' %}
+
+{% block styles %}
+{{ parent() }}
+<style>
+.image {
+    float: right;
+    height: 152px;
+    margin: 0 0 20px 20px;
+}
+
+.record-description ul { font-weight: bold }
+.record-description ul li:after { content: ", " }
+.record-description ul li:last-child:after { content: none }
+
+label[for] {
+    font-weight: bold;
+}
+
+textarea {
+    height: 180px;
+    width: 360px;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+{% endblock %}
+
+{% block content %}
+{{ parent() }}
+<nav aria-label="breadcrumb">
+    <ol class="list-breadcrumb">
+        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li><a href="{{ url_for('location', {location: location.slug}) }}">{{ location.data.name }}</a></li><li><a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}">{{ item.data.name }}</a></li><li aria-current="page">{{ title }}</li>
+    </ol>
+</nav>
+
+{% if item.data.image %}
+<img src="{{ item.data.image }}" class="image">
+{% endif %}
+
+<h2>{{ item.data.name }}</h2>
+<div class="record-description">
+<ul class="list-inline">
+    {% if item.data.capacity %}<li>Capacity: {{ item.data.capacity }}</li>{% endif %}
+    {% if item.data.isAccessible %}<li>Accessible Space</li>{% endif %}
+    {% if item.data.isPowered %}<li>Power Available</li>{% endif %}
+</ul>
+{{ item.data.description|raw }}
+</div>
+
+{% if options %}
+<form method="post" action="{{ url_for('time', {location: location.slug, item: item.slug, date: datepoint|date('Y-m-d'), time: datepoint|date('H:i')}) }}">
+    <input type="hidden" name="start" value="{{ post.start }}">
+    <input type="hidden" name="bookings[0][id]" value="{{ post.bookings[0]['id'] }}">
+    <p>
+        <label for="to">Reserve for</label><br>
+        <select name="bookings[0][to]" id="to" required>
+            {% for value, name in options %}
+            <option value="{{ value }}"{% if value == post.bookings[0]['to'] %} selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    {% for name, field in form.fields %}
+        <p>
+            <label for="{{ name }}">{{ field.label }}</label><br>
+            {% if name == 'email' %}
+            <input type="email" name="{{ name }}" id="{{ name }}"{% if post[name] %} value="{{ post[name] }}"{% endif %}{% if field.required %} required{% endif %}{% if email %} pattern="{{ email.pattern }}" title="{{ email.title }}"{% endif %}>
+            {% if email %}<br><small>{{ email.title }}</small>{% endif %}
+            {% elseif field.type == 'checkbox' %}
+            {% for option in field.options %}
+            <label><input type="checkbox" name="{{ name }}[]" value="{{ option|raw }}"{% if loop.first %} id="{{ name }}"{% endif %}{% if option in post[name] %} checked{% endif %}>{{ option|raw }}</label><br>
+            {% endfor %}
+            {% elseif field.type == 'radio' %}
+            {% for option in field.options %}
+            <label><input type="radio" name="{{ name }}" value="{{ option|raw }}"{% if loop.first %} id="{{ name }}"{% endif %}{% if option == post[name] %} checked{% endif %}>{{ option|raw }}</label><br>
+            {% endfor %}
+            {% elseif field.type == 'dropdown' %}
+            <select name="{{ name }}" id="{{ name }}">
+            {% for option in field.options %}
+                <option{% if post[name] == option %} selected{% endif %}>{{ option|raw }}</option>
+            {% endfor %}
+            </select>
+            {% elseif field.type == 'textarea' %}
+            <textarea name="{{ name }}" id="{{ name }}"{% if field.required %} required{% endif %}>{{ post[name] }}</textarea>
+            {% else %}
+            <input type="{{ field.type == 'string' ? 'text' : field.type }}" name="{{ name }}" id="{{ name }}"{% if post[name] %} value="{{ post[name] }}"{% endif %}{% if field.required %} required{% endif %}>
+            {% endif %}
+        </p>
+    {% endfor %}
+    <input type="submit" value="Reserve" class="button button-primary">
+</form>
+{% else %}
+<div class="alert alert-failure">
+This date and time is not available.
+</div>
+<a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}" class="button button-primary">Choose a different time</a>
+{% endif %}
+
+{% endblock %}

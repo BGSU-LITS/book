@@ -1,0 +1,54 @@
+{% set title = booking.fromDate|date('l, F j, Y') ~ ' at ' ~ booking.fromDate|date('g:ia') %}
+{% extends 'page.html.twig' %}
+
+{% block styles %}
+{{ parent() }}
+<style>
+.image {
+    float: right;
+    height: 152px;
+    margin: 0 0 20px 20px;
+}
+
+.record-description ul { font-weight: bold }
+.record-description ul li:after { content: ", " }
+.record-description ul li:last-child:after { content: none }
+
+label[for] {
+    font-weight: bold;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+{% endblock %}
+
+{% block content %}
+{{ parent() }}
+<nav aria-label="breadcrumb">
+    <ol class="list-breadcrumb">
+        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li><a href="{{ url_for('location', {location: location.slug}) }}">{{ location.data.name }}</a></li><li><a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}">{{ item.data.name }}</a></li><li aria-current="page">{{ title }}</li>
+    </ol>
+</nav>
+
+{% if item.data.image %}
+<img src="{{ item.data.image }}" class="image">
+{% endif %}
+
+<h2>{{ booking.status }} Reservation for {{ time }}</h2>
+<form method="post" action="{{ url_for('id', {id: booking.bookId}) }}">
+<p><button type="submit" name="cancel" value="1" class="button">Cancel this booking</button></p>
+</form>
+
+<h2>{{ item.data.name }}</h2>
+<div class="record-description">
+<ul class="list-inline">
+    {% if item.data.capacity %}<li>Capacity: {{ item.data.capacity }}</li>{% endif %}
+    {% if item.data.isAccessible %}<li>Accessible Space</li>{% endif %}
+    {% if item.data.isPowered %}<li>Power Available</li>{% endif %}
+</ul>
+{{ item.data.description|raw }}
+</div>
+
+{% endblock %}

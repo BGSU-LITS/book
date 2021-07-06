@@ -1,0 +1,8 @@
+composer.phar
+/settings.php
+/vendor
+/vendor-bin/**/vendor
+/vendor-bin/**/composer.lock
+.phplint-cache
+.phpunit.result.cache
+.vscode

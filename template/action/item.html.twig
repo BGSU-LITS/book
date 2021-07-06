@@ -1,0 +1,177 @@
+{% set title = item.data.name %}
+{% extends 'page.html.twig' %}
+
+{% block styles %}
+{{ parent() }}
+<style>
+.columns {
+    border-top: 1px solid #ddd;
+    clear: both;
+    display: flex;
+}
+
+.columns > div {
+    flex: 1 1 auto;
+}
+
+.columns > div > h2 {
+    border-bottom: 3px solid #ddd;
+    font-size: 1em;
+    font-weight: bold;
+    padding: 5px;
+}
+
+.columns > div > a {
+    border-bottom: 1px solid #ddd;
+    box-sizing: border-box;
+    color: #666;
+    display: block;
+    padding: 5px;
+}
+
+.columns > div > a:last-child {
+    border-bottom-color: transparent;
+}
+
+.columns > div > a[href] {
+    font-weight: bold;
+}
+
+{% for slot in range(1, slots) %}
+.columns > div > a[href]:hover{% if slot > 1 %}{% for count in range(2, slot) %} + a{% endfor %}{% endif %}{% if not loop.last %},
+{% endif %}
+{% endfor %} {
+    background: #EFE2D4;
+    border-bottom-color: transparent;
+    margin: 0 1px;
+    padding: 5px 4px;
+}
+
+.columns > div > a[href]:hover {
+    border-radius: 4px 4px 0 0;
+    margin-top: 1px;
+    padding-top: 4px;
+}
+
+.columns > div > a[href]:hover{% if slots > 1 %}{% for count in range(2, slots) %} + a{% endfor %}{% endif %} {
+    border-radius: 0 0 4px 4px;
+}
+
+.columns > div > .alert {
+    margin: 4px;
+}
+
+.selected {
+    background: #f2f2f2;
+}
+
+.selected .selected {
+    background: #ddd;
+}
+
+.move {
+    clear: both;
+    text-align: center;
+}
+
+.move-prev {
+    float: left;
+    text-align: left;
+    width: 25%;
+}
+
+.move-next {
+    float: right;
+    text-align: right;
+    width: 25%;
+}
+
+.image {
+    float: right;
+    height: 152px;
+    margin: 0 0 20px 20px;
+}
+
+.record-description ul { font-weight: bold }
+.record-description ul li:after { content: ", " }
+.record-description ul li:last-child:after { content: none }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+<script src="https://lib.bgsu.edu/template/1.3.2/flatpickr.js"></script>
+<script>
+(function (field) {
+    bgsu_flatpickr.setup(field, {
+        minDate: '{{ location.availability|date("Y-m-d") }}',
+        maxDate: '{{ "+6 months"|date("Y-m-d") }}',
+        onChange: function(selectedDates, dateStr, instance) {
+            window.location = '{{ url_for('item', {'location': location.slug, 'item': item.slug}) }}?date=' + dateStr;
+        }
+    });
+})(
+    document.getElementById('date')
+);
+</script>
+{% endblock %}
+
+{% block content %}
+{% if item.data.image %}
+<img src="{{ item.data.image }}" class="image">
+{% endif %}
+<h1>{{ title }}</h1>
+<nav aria-label="breadcrumb">
+    <ol class="list-breadcrumb">
+        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li><a href="{{ url_for('location', {location: location.slug}) }}">{{ location.data.name }}</a></li><li aria-current="page">{{ title }}</li>
+    </ol>
+</nav>
+
+{% for message in messages %}
+<div class="alert alert-{{ message.level }}">{{ message.message }}</div>
+{% endfor %}
+
+<div class="record-description">
+<ul class="list-inline">
+    {% if item.data.capacity %}<li>Capacity: {{ item.data.capacity }}</li>{% endif %}
+    {% if item.data.isAccessible %}<li>Accessible Space</li>{% endif %}
+    {% if item.data.isPowered %}<li>Power Available</li>{% endif %}
+</ul>
+{{ item.data.description|raw }}
+</div>
+
+<div class="move">
+<a{% if item.times|keys|first > 'now'|date('Y-m-d') %} href="{{ url_for('item', {'location': location.slug, 'item': item.slug, 'date': item.times|keys|first|date_modify('-1 week')|date('Y-m-d')}) }}"{% endif %} class="move-prev">⟵ Previous Week</a>
+<a href="{{ url_for('item', {'location': location.slug, 'item': item.slug, 'date': item.times|keys|first|date_modify('+1 week')|date('Y-m-d')}) }}" class="move-next">Next Week ⟶</a>
+<button id="date" name="date" class="button button-small">Select Date</button>
+</div>
+
+{% if item.times %}
+<div class="columns">
+    {% for date in item.times|keys %}
+    <div{% if query.date and date == query.date %} class="selected"{% endif %}>
+        <h2>
+            {{ date|date('M j') }}<br>
+            <small>{{ 'now'|date('Y-m-d') == date ? 'Today' : date|date('l') }}</small>
+        </h2>
+        {% if item.times[date] %}
+        {% for time in item.times[date]|keys %}
+        <a{% if item.times[date][time] %} href="{{ url_for('time', {'location': location.slug, 'item': item.slug, 'date': date, 'time': time}) }}"{% endif %}{% if query.time and time == query.time %} class="selected"{% endif %}>
+            {{ (date ~ ' ' ~ time)|date('g:ia') }}
+        </a>
+        {% endfor %}
+        {% else %}
+        <div class="alert alert-failure">
+        No available times
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-failure">
+No times are available to book.
+</div>
+{% endif %}
+
+{% endblock %}
