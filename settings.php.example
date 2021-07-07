@@ -2,7 +2,12 @@
 
 declare(strict_types=1);
 
+use League\Period\Duration;
+use Lits\Config\BookConfig;
 use Lits\Config\FrameworkConfig;
+use Lits\Config\LibCalConfig;
+use Lits\Config\MetaConfig;
+use Lits\Config\QuestionConfig;
 use Lits\Config\SessionConfig;
 use Lits\Config\TemplateConfig;
 use Lits\Framework;
