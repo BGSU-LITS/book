@@ -127,10 +127,6 @@
     </ol>
 </nav>
 
-{% for message in messages %}
-<div class="alert alert-{{ message.level }}">{{ message.message }}</div>
-{% endfor %}
-
 <div class="record-description">
 <ul class="list-inline">
     {% if item.data.capacity %}<li>Capacity: {{ item.data.capacity }}</li>{% endif %}
@@ -139,6 +135,10 @@
 </ul>
 {{ item.data.description|raw }}
 </div>
+
+{% for message in messages %}
+<div class="alert alert-{{ message.level }}">{{ message.message }}</div>
+{% endfor %}
 
 <div class="move">
 <a{% if item.times|keys|first > 'now'|date('Y-m-d') %} href="{{ url_for('item', {'location': location.slug, 'item': item.slug, 'date': item.times|keys|first|date_modify('-1 week')|date('Y-m-d')}) }}"{% endif %} class="move-prev">⟵ Previous Week</a>
