@@ -6,6 +6,7 @@ namespace Lits;
 
 trait TraitMeta
 {
+    public ?string $description = null;
     public ?string $emailDomain = null;
     public ?\DateInterval $lengthDefault = null;
     public ?\DateInterval $lengthMinimum = null;

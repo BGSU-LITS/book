@@ -35,6 +35,10 @@ final class ItemMeta extends Meta
 
     public function addConfig(MetaConfig $config): void
     {
+        if (!\is_null($config->description)) {
+            $this->description = $config->description;
+        }
+
         if (!\is_null($config->emailDomain)) {
             $this->emailDomain = $config->emailDomain;
         }
