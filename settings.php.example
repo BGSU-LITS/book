@@ -59,6 +59,11 @@ return function (Framework $framework): void {
     // Client Secret from the API Authentication admin of LibCal.
     $settings['libcal']->clientSecret = '1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d';
 
+    // Path to cache directory, which must be writable.
+    if (is_string($settings['template']->cache)) {
+        $settings['libcal']->cache = $settings['template']->cache;
+    }
+
     assert($settings['book'] instanceof BookConfig);
 
     // Create a configuration for a given ID number (ex. 0).

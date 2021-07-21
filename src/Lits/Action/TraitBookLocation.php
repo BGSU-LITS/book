@@ -47,6 +47,7 @@ trait TraitBookLocation
             $locations = $this->client->space()
                 ->locations()
                 ->setDetails()
+                ->cache()
                 ->send();
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
@@ -95,6 +96,7 @@ trait TraitBookLocation
                 ->setAccessibleOnly(isset($query['accessible']))
                 ->setPowered(isset($query['powered']))
                 ->setBookable(!isset($query['seats']))
+                ->cache()
                 ->send();
         } catch (ClientException $exception) {
             return [];
@@ -129,6 +131,7 @@ trait TraitBookLocation
         try {
             $result = $this->client->space()
                 ->categories($location_id)
+                ->cache()
                 ->send();
         } catch (NotFoundException $exception) {
             throw new HttpNotFoundException(
@@ -163,6 +166,7 @@ trait TraitBookLocation
         try {
             return $this->client->space()
                 ->zones($location_id)
+                ->cache()
                 ->send();
         } catch (NotFoundException $exception) {
             throw new HttpNotFoundException(

@@ -31,6 +31,7 @@ final class IndexAction extends Action
         try {
             $locations = $this->client->space()
                 ->locations()
+                ->cache()
                 ->send();
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(

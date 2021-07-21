@@ -13,6 +13,8 @@ final class LibCalConfig extends Config
     public string $clientId = '';
     public string $clientSecret = '';
 
+    public ?string $cache = null;
+
     /** @throws InvalidConfigException */
     public function test(): void
     {

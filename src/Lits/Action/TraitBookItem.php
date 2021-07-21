@@ -55,6 +55,7 @@ trait TraitBookItem
             try {
                 $result = $this->client->space()
                     ->category($item->data->groupId)
+                    ->cache()
                     ->send();
             } catch (NotFoundException $exception) {
                 throw new HttpNotFoundException(
@@ -91,17 +92,23 @@ trait TraitBookItem
     private function getAvailability(
         int $item_id,
         ?string $from,
-        ?string $to
+        ?string $to,
+        bool $cache = false
     ): array {
         if (\is_null($from) || \is_null($to)) {
             return [];
         }
 
         try {
-            $result = $this->client->space()
+            $client = $this->client->space()
                 ->item($item_id)
-                ->setAvailability([$from, $to])
-                ->send();
+                ->setAvailability([$from, $to]);
+
+            if ($cache) {
+                $client->cache();
+            }
+
+            $result = $client->send();
         } catch (NotFoundException $exception) {
             throw new HttpNotFoundException(
                 $this->request,

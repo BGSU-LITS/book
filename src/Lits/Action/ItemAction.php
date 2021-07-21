@@ -64,7 +64,8 @@ final class ItemAction extends Action
         $availability = $this->getAvailability(
             $context['item']->id,
             \array_key_first($context['item']->times),
-            \array_key_last($context['item']->times)
+            \array_key_last($context['item']->times),
+            true
         );
 
         $this->setDivisor($context['item'], $availability);

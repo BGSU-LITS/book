@@ -44,6 +44,7 @@ trait TraitBookTime
             if ($formid !== 0) {
                 $result = $this->client->space()
                     ->form($formid)
+                    ->cache()
                     ->send();
 
                 $form = \reset($result);

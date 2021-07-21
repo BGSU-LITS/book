@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Desarrolla2\Cache\Memory;
+use Desarrolla2\Cache\PhpFile;
 use GuzzleHttp\Client as GuzzleHttpClient;
 use GuzzleHttp\Psr7\HttpFactory;
 use Lits\Config\LibCalConfig;
@@ -11,6 +13,7 @@ use Lits\Settings;
 use Psr\Http\Client\ClientInterface as HttpClient;
 use Psr\Http\Message\RequestFactoryInterface as HttpRequestFactory;
 use Psr\Http\Message\StreamFactoryInterface as HttpStreamFactory;
+use Psr\SimpleCache\CacheInterface as Cache;
 
 return function (Framework $framework): void {
     $framework->addDefinition(
@@ -19,7 +22,8 @@ return function (Framework $framework): void {
             Settings $settings,
             HttpClient $client,
             HttpRequestFactory $requestFactory,
-            HttpStreamFactory $streamFactory
+            HttpStreamFactory $streamFactory,
+            Cache $cache
         ): Client {
             assert($settings['libcal'] instanceof LibCalConfig);
 
@@ -31,9 +35,23 @@ return function (Framework $framework): void {
                 $settings['libcal']->clientSecret,
                 $client,
                 $requestFactory,
-                $streamFactory
+                $streamFactory,
+                $cache
             );
         },
+    );
+
+    $framework->addDefinition(
+        Cache::class,
+        function (Settings $settings): Cache {
+            assert($settings['libcal'] instanceof LibCalConfig);
+
+            if (!is_null($settings['libcal']->cache)) {
+                return new PhpFile($settings['libcal']->cache);
+            }
+
+            return new Memory();
+        }
     );
 
     $framework->addDefinition(

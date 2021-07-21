@@ -13,8 +13,9 @@
         "ext-date": "*",
         "ext-pcre": "*",
         "bgsu-lits/framework": "^1.5",
-        "bgsu-lits/libcal": "^0.1",
+        "bgsu-lits/libcal": "^0.2",
         "cocur/slugify": "^4.0",
+        "desarrolla2/cache": "^3.0",
         "guzzlehttp/guzzle": "^7.3",
         "guzzlehttp/psr7": "^2.0",
         "league/period": "^4.11"
@@ -30,17 +31,17 @@
     },
     "extra": {
         "scripts-dev": {
+            "phpcbf": "phpcbf ./ --standard=phpcs.xml",
+            "phpcs": "phpcs ./ --standard=phpcs.xml",
+            "phplint": "phplint ./ --exclude=vendor",
+            "phpstan": "phpstan analyse -c phpstan.neon",
+            "phpunit": "phpunit -c phpunit.xml",
             "post-install-cmd": [
                 "@composer bin all install --ansi"
             ],
             "post-update-cmd": [
                 "@composer bin all update --ansi"
             ],
-            "phpcbf": "phpcbf ./ --standard=phpcs.xml",
-            "phpcs": "phpcs ./ --standard=phpcs.xml",
-            "phplint": "phplint ./ --exclude=vendor",
-            "phpstan": "phpstan analyse -c phpstan.neon",
-            "phpunit": "phpunit -c phpunit.xml",
             "psalm": "psalm --config=psalm.xml",
             "test": [
                 "@phplint",
