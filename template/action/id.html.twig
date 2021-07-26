@@ -28,7 +28,7 @@ label[for] {
 {{ parent() }}
 <nav aria-label="breadcrumb">
     <ol class="list-breadcrumb">
-        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li><a href="{{ url_for('location', {location: location.slug}) }}">{{ location.data.name }}</a></li><li><a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}">{{ item.data.name }}</a></li><li aria-current="page">{{ title }}</li>
+        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li><a href="{{ url_for('location', {location: location.slug}) }}">{{ location.data.name }}</a></li><li><a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ booking.fromDate|date('Y-m-d') }}">{{ item.data.name }}</a></li><li aria-current="page">{{ title }}</li>
     </ol>
 </nav>
 
@@ -50,5 +50,7 @@ label[for] {
 </ul>
 {{ item.data.description|raw }}
 </div>
+
+<p><a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ booking.fromDate|date('Y-m-d') }}" class="button button-primary">Make another reservation</a></p>
 
 {% endblock %}
