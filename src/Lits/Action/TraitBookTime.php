@@ -137,11 +137,11 @@ trait TraitBookTime
         }
 
         try {
+            /** @var string[] */
+            $domains = preg_split('/,\s*/', \preg_quote($item->emailDomain));
+
             return [
-                'pattern' => '.*(' . \implode('|', preg_split(
-                    '/,\s*/',
-                    \preg_quote($item->emailDomain)
-                )) . ')',
+                'pattern' => '.*(' . \implode('|', $domains) . ')',
                 'title' => 'Enter ' . $item->emailDomain . ' addresses only',
             ];
         } catch (\Throwable $exception) {
