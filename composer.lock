@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f1215cdfe87ae75895f3e0b365e4bfd7",
+    "content-hash": "6d20679e35df0f90f5edcbebc715ee0b",
     "packages": [
         {
             "name": "bgsu-lits/framework",
@@ -99,16 +99,16 @@
         },
         {
             "name": "bgsu-lits/libcal",
-            "version": "v0.3.0",
+            "version": "v0.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/BGSU-LITS/libcal.git",
-                "reference": "57000bdca5ca59cdef280ecf4f0b457bf9c71afe"
+                "reference": "8962bc1aa2d6489bfda51c0b04df83aa456fc8a4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/BGSU-LITS/libcal/zipball/57000bdca5ca59cdef280ecf4f0b457bf9c71afe",
-                "reference": "57000bdca5ca59cdef280ecf4f0b457bf9c71afe",
+                "url": "https://api.github.com/repos/BGSU-LITS/libcal/zipball/8962bc1aa2d6489bfda51c0b04df83aa456fc8a4",
+                "reference": "8962bc1aa2d6489bfda51c0b04df83aa456fc8a4",
                 "shasum": ""
             },
             "require": {
@@ -178,9 +178,9 @@
             "description": "SpringShare LibCal API Client.",
             "support": {
                 "issues": "https://github.com/BGSU-LITS/libcal/issues",
-                "source": "https://github.com/BGSU-LITS/libcal/tree/v0.3.0"
+                "source": "https://github.com/BGSU-LITS/libcal/tree/v0.4.0"
             },
-            "time": "2021-08-12T14:56:19+00:00"
+            "time": "2021-08-12T20:00:43+00:00"
         },
         {
             "name": "cocur/slugify",
