@@ -31,7 +31,7 @@ trait TraitBookTime
         $formid = $item->data->formid ?? 0;
 
         if ($formid === 0) {
-            $formid = $category->data->formid;
+            $formid = $category->data->formid ?? 0;
         }
 
         if ($formid === 0) {
