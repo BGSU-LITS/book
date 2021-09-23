@@ -18,14 +18,14 @@
     border-bottom: 3px solid #ddd;
     font-size: 1em;
     font-weight: bold;
+    margin: 0;
     padding: 5px;
 }
 
 .columns > div > a {
     border-bottom: 1px solid #ddd;
-    box-sizing: border-box;
-    color: #666;
     display: block;
+    line-height: 1.8;
     padding: 5px;
 }
 
@@ -38,16 +38,28 @@
 }
 
 {% for slot in range(1, slots) %}
-.columns > div > a[href]:hover{% if slot > 1 %}{% for count in range(2, slot) %}{# twigcs use-var count #}
- + a{% endfor %}{% endif %}{% if not loop.last %},
-{% endif %}
-{% endfor %} {
+.columns > div > a[href]:focus
+    {%- if slot > 1 %}
+        {%- for count in range(2, slot) %}
+            {#- twigcs use-var count #} + a
+        {%- endfor %}
+    {%- endif %},
+.columns > div > a[href]:hover
+    {%- if slot > 1 %}
+        {%- for count in range(2, slot) %}
+            {#- twigcs use-var count #} + a
+        {%- endfor %}
+    {%- endif %}
+    {%- if not loop.last %},
+    {%~ endif %}
+{%- endfor %} {
     background: #EFE2D4;
     border-bottom-color: transparent;
     margin: 0 1px;
     padding: 5px 4px;
 }
 
+.columns > div > a[href]:focus,
 .columns > div > a[href]:hover {
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
@@ -55,39 +67,36 @@
     padding-top: 4px;
 }
 
-.columns > div > a[href]:hover{% if slots > 1 %}{% for count in range(2, slots) %}{# twigcs use-var count #}
- + a{% endfor %}{% endif %} {
+.columns > div > a[href]:focus
+{%- if slots > 1 %}
+    {%- for count in range(2, slots) %}
+        {#- twigcs use-var count #} + a
+    {%- endfor %}
+{%- endif %},
+.columns > div > a[href]:hover
+{%- if slots > 1 %}
+    {%- for count in range(2, slots) %}
+        {#- twigcs use-var count #} + a
+    {%- endfor %}
+{%- endif %} {
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
+}
+
+.columns > div > a:not([href]) {
+    color: #666;
 }
 
 .columns > div > .alert {
     margin: 4px;
 }
 
-.selected {
+.columns .selected {
     background: #f2f2f2;
 }
 
-.selected .selected {
+.columns .selected .selected {
     background: #ddd;
-}
-
-.move {
-    clear: both;
-    text-align: center;
-}
-
-.move-prev {
-    float: left;
-    text-align: left;
-    width: 25%;
-}
-
-.move-next {
-    float: right;
-    text-align: right;
-    width: 25%;
 }
 
 .image {
@@ -96,9 +105,34 @@
     margin: 0 0 20px 20px;
 }
 
-.record-description ul { font-weight: bold }
-.record-description ul li:after { content: ", " }
-.record-description ul li:last-child:after { content: none }
+.move {
+    clear: both;
+    text-align: center;
+}
+
+.move > .move-prev {
+    float: left;
+    text-align: left;
+    width: 25%;
+}
+
+.move > .move-next {
+    float: right;
+    text-align: right;
+    width: 25%;
+}
+
+.record-description > .list-inline {
+    font-weight: bold;
+}
+
+.record-description > .list-inline > li:after {
+    content: ", ";
+}
+
+.record-description > .list-inline > li:last-child::after {
+    display: none;
+}
 </style>
 {% endblock %}
 
@@ -130,52 +164,64 @@
         <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li><a href="{{ url_for('location', {location: location.slug}) }}">{{ location.data.name }}</a></li><li aria-current="page">{{ title }}</li>
     </ol>
 </nav>
-
 <div class="record-description">
-<ul class="list-inline">
-    {% if item.data.capacity %}<li>Capacity: {{ item.data.capacity }}</li>{% endif %}
-    {% if item.data.isAccessible %}<li>Accessible Space</li>{% endif %}
-    {% if item.data.isPowered %}<li>Power Available</li>{% endif %}
-</ul>
-{{ item.data.description|raw }}
+    <ul class="list-inline">
+        {%~ if item.data.capacity %}
+        <li>Capacity: {{ item.data.capacity }}</li>
+        {%~ endif %}
+        {%~ if item.data.isAccessible %}
+        <li>Accessible Space</li>
+        {%~ endif %}
+        {%~ if item.data.isPowered %}
+        <li>Power Available</li>
+        {%~ endif %}
+    </ul>
+    {{ item.data.description|raw -}}
 </div>
-
 {% for message in messages %}
-<div class="alert alert-{{ message.level }}">{{ message.message }}</div>
-{% endfor %}
-
-<div class="move">
-<a{% if item.times|keys|first > 'now'|date('Y-m-d') %} href="{{ url_for('item', {'location': location.slug, 'item': item.slug, 'date': item.times|keys|first|date_modify('-1 week')|date('Y-m-d')}) }}"{% endif %} class="move-prev">⟵ Previous Week</a>
-<a href="{{ url_for('item', {'location': location.slug, 'item': item.slug, 'date': item.times|keys|first|date_modify('+1 week')|date('Y-m-d')}) }}" class="move-next">Next Week ⟶</a>
-<button id="date" name="date" class="button button-small">Select Date</button>
+<div class="alert alert-{{ message.level }}">
+    {{ message.message }}
 </div>
-
+{% endfor %}
+<div class="move">
+    <a{%- if item.times|keys|first > 'now'|date('Y-m-d') %} href="{{ url_for('item', {'location': location.slug, 'item': item.slug, 'date': item.times|keys|first|date_modify('-1 week')|date('Y-m-d')}) }}"{% endif %} class="move-prev">
+        ⟵ Previous Week
+    </a>
+    <a href="{{ url_for('item', {'location': location.slug, 'item': item.slug, 'date': item.times|keys|first|date_modify('+1 week')|date('Y-m-d')}) }}" class="move-next">
+        Next Week ⟶
+    </a>
+    <button id="date" name="date" class="button button-small">
+        Select Date
+    </button>
+</div>
 {% if item.times %}
 <div class="columns">
-    {% for date in item.times|keys %}
+    {%~ for date in item.times|keys %}
     <div{% if query.date and date == query.date %} class="selected"{% endif %}>
         <h2>
             {{ date|date('M j') }}<br>
             <small>{{ 'now'|date('Y-m-d') == date ? 'Today' : date|date('l') }}</small>
         </h2>
-        {% if item.times[date] %}
-        {% for time in item.times[date]|keys %}
-        <a{% if item.times[date][time] %} href="{{ url_for('time', {'location': location.slug, 'item': item.slug, 'date': date, 'time': time}) }}"{% endif %}{% if query.time and time == query.time %} class="selected"{% endif %}>
-            {{ (date ~ ' ' ~ time)|date('g:ia') }}
+        {%~ if item.times[date] %}
+        {%- for time in item.times[date]|keys %}
+        <a
+            {%- if item.times[date][time] %} href="{{ url_for('time', {'location': location.slug, 'item': item.slug, 'date': date, 'time': time}) }}"{% endif -%}
+            {%- if query.time and time == query.time %} class="selected"{% endif -%}
+        >
+            {{- (date ~ ' ' ~ time)|date('g:ia') -}}
         </a>
-        {% endfor %}
-        {% else %}
+        {%~ endfor %}
+        {%~ else %}
         <div class="alert alert-failure">
-        No available times
+            No available times
         </div>
-        {% endif %}
+        {%~ endif %}
     </div>
-    {% endfor %}
+    {%~ endfor %}
 </div>
 {% else %}
 <div class="alert alert-failure">
 No times are available to book.
 </div>
 {% endif %}
-
 {% endblock %}

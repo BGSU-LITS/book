@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>
+    {{- title -}}
+    {{- title and settings.template.site ? ' - ' -}}
+    {{- settings.template.site -}}
+</title>
+{% block styles %}
+<style>
+.alert {
+    background: #f2f2f2;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 0 0 20px;
+    padding: 4px 8px;
+}
+
+.alert.alert-failure {
+    background: #fff2f2;
+    border-color: #c00;
+}
+
+.alert.alert-warning {
+    background: #fffff2;
+    border-color: #f9f6b8;
+}
+
+.alert.alert-success {
+    background: #f2fff2;
+    border-color: #0c0;
+}
+
+.list-breadcrumb {
+    color: #595959;
+    font-size: .875em;
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+}
+
+.list-breadcrumb > li {
+    display: inline-block;
+    font-weight: 400;
+    word-break: break-word;
+}
+
+.list-breadcrumb > li::after {
+    border-left: 1px solid;
+    content: "";
+    float: right;
+    height: .875em;
+    margin: 4px 8px;
+    transform: rotate(15deg);
+    vertical-align: middle;
+}
+
+.list-breadcrumb > li:last-child::after {
+    display: none;
+}
+
+.list-inline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.list-inline > li {
+    display: inline-block;
+}
+
+.list-inline > li + li {
+    padding-left: 4px;
+}
+
+.record > a {
+    display: flex;
+    text-decoration: none;
+}
+
+.record > a > .record-details {
+    flex: 1 1 auto;
+    margin-bottom: 20px;
+}
+
+.record > a > .record-details > .record-title {
+    text-decoration: underline;
+}
+
+.record > a > .record-details > .record-description {
+    color: #000;
+}
+
+.record > a > .record-image {
+    background-position: 50%;
+    background-repeat: no-repeat;
+    background-size: contain;
+    flex: 0 0 auto;
+    height: 128px;
+    margin: 0 0 20px 20px;
+    width: 192px;
+}
+
+.sidebar {
+    display: flex;
+}
+
+.sidebar > .sidebar-left {
+    background: #f2f2f2;
+    border-radius: 4px;
+    flex: 0 0 20%;
+    margin: 0 16px 0 0;
+    order: 0;
+    padding: 0 8px 4px 8px;
+}
+</style>
+{% endblock %}
+</head>
+<body>
+{% block body %}
+{% if settings.template.menu %}
+<nav>
+    <ul>
+    {%~ if settings.template.site %}
+        <li><strong><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></strong></li>
+    {%~ endif %}
+    {%~ for item in settings.template.menu %}
+        <li><a href="{{ item.href }}">{{ item.text }}</a></li>
+    {%~ endfor %}
+    </ul>
+</nav>
+{% endif %}
+<main id="content">
+{% block content %}
+{%- if title %}
+<h1>{{ title }}</h1>
+{%- elseif settings.template.site %}
+<h1>{{ settings.template.site }}</h1>
+{%- endif %}
+{%- for message in messages %}
+<div class="alert alert-{{ message.level }}">
+    {{ message.message }}
+</div>
+{%- endfor %}
+{% endblock %}
+</main>
+{% block scripts %}
+{% endblock %}
+{% endblock %}
+</body>
+</html>

@@ -3,37 +3,81 @@
 
 {% macro outputItem(item, location, heading, query) %}
 {% set first = item.data.availability|first.from %}
-<div class="record">
-    <a href="{{ url_for('item', {'location': location.slug, 'item': item.slug}) }}{% if query.date %}?date={{ first|date("Y-m-d") }}{% if query.time %}&amp;time={{ first|date("H:i") }}{% endif %}{% endif %}">
-        <div class="record-details">
-            <{{ heading }} class="record-title">{{ item.data.name }}</{{ heading }}>
-            <div class="record-description">
-                <ul class="list-inline">
-                    {% if item.data.capacity %}<li>Capacity: {{ item.data.capacity }}</li>{% endif %}
-                    {% if item.data.isAccessible %}<li>Accessible Space</li>{% endif %}
-                    {% if item.data.isPowered %}<li>Power Available</li>{% endif %}
-                </ul>
-                {{ item.data.description|raw }}
-                <div><strong>Available on {{ first|date('l, F j \\a\\t g:i A') }}</strong></div>
+            <div class="record">
+                <a href="
+                    {{- url_for('item', {'location': location.slug, 'item': item.slug}) -}}
+                    {%- if query.date -%}
+                        ?date={{ first|date("Y-m-d") -}}
+                            {%- if query.time -%}
+                                &amp;time={{ first|date("H:i") -}}
+                            {%- endif -%}
+                    {%- endif -%}
+                ">
+                    <div class="record-details">
+                        <{{ heading }} class="record-title">{{ item.data.name }}</{{ heading }}>
+                        <div class="record-description">
+                            <ul class="list-inline">
+                                {%~ if item.data.capacity %}
+                                <li>Capacity: {{ item.data.capacity }}</li>
+                                {%~ endif %}
+                                {%~ if item.data.isAccessible %}
+                                <li>Accessible Space</li>
+                                {%~ endif %}
+                                {%~ if item.data.isPowered %}
+                                <li>Power Available</li>
+                                {%~ endif %}
+                            </ul>
+                            {{ item.data.description|raw -}}
+                            <div><strong>Available on {{ first|date('l, F j \\a\\t g:i A') }}</strong></div>
+                        </div>
+                    </div>
+                    {%~ if item.data.image %}
+                    <div class="record-image" style="background-image:url({{ item.data.image }})"></div>
+                    {%~ endif %}
+                </a>
             </div>
-        </div>
-        {% if item.data.image %}
-        <div class="record-image" style="background-image:url({{ item.data.image }})"></div>
-        {% endif %}
-    </a>
-</div>
 {% endmacro %}
 
 {% block styles %}
 {{ parent() }}
 <style>
-.record-description ul { font-weight: bold }
-.record-description ul li:after { content: ", " }
-.record-description ul li:last-child:after { content: none }
-form input[type="range"] { vertical-align: middle }
-form input[type="text"] { width: 100%; }
-form p { white-space: nowrap; }
-form .icon-remove { left: -24px; position: relative; }
+form > p {
+    white-space: nowrap;
+}
+
+form > p > input[type="range"] {
+    vertical-align: middle;
+}
+
+form > p > input[type="text"] {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+form > p > .icon-remove {
+    left: -24px;
+    margin: 0 4px;
+    position: relative;
+    text-decoration: none;
+}
+
+form > p > .icon-remove::before {
+    color: #c00;
+    content: "×";
+    font-weight: 700;
+}
+
+.record-description > .list-inline {
+    font-weight: bold;
+}
+
+.record-description > .list-inline > li:after {
+    content: ", ";
+}
+
+.record-description > .list-inline > li:last-child::after {
+    display: none;
+}
 </style>
 {% endblock %}
 
@@ -114,7 +158,6 @@ form .icon-remove { left: -24px; position: relative; }
 
     capacity.oninput();
 })(document.getElementById('capacity'));
-
 </script>
 {% endblock %}
 
@@ -125,9 +168,7 @@ form .icon-remove { left: -24px; position: relative; }
         <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li aria-current="page">{{ title }}</li>
     </ol>
 </nav>
-
 {{ location.config.description|raw }}
-
 <div class="sidebar">
     <div class="sidebar-left">
         <h2 class="sidebar-title">Narrow Options</h2>
@@ -142,13 +183,13 @@ form .icon-remove { left: -24px; position: relative; }
                 <input type="text" name="time" id="time" value="{{ query.time }}">
                 <a id="time-clear" class="icon icon-remove" href="#" title="Clear Time"></a>
             </p>
-            {% if location.capacity > 1 %}
+            {%~ if location.capacity > 1 %}
             <p>
                 <label for="capacity">Minimum Capacity:</label><br>
                 <input type="range" name="capacity" id="capacity" min="1" max="{{ location.capacity }}" value="{{ query.capacity ?: 1 }}">
                 <output>None</output>
             </p>
-            {% endif %}
+            {%~ endif %}
             <p>
                 Limit to:<br>
                 <input type="checkbox" name="accessible" id="accessible"{% if query.accessible %} checked{% endif %}>
@@ -161,37 +202,36 @@ form .icon-remove { left: -24px; position: relative; }
     </div>
     <div>
         <div class="records records-list">
-            {% if location.items %}
-            {% if location.zones|length > 1 %}
-            {% for zone in location.zones %}
+            {%~ if location.items %}
+                {%- if location.zones|length > 1 %}
+                    {%- for zone in location.zones %}
             <h2>{{ zone.data.name }}</h2>
-            {% for item in location.items %}
-            {% if item.data.zoneId == zone.data.id %}
-            {{ _self.outputItem(item, location, 'h3', query) }}
-            {% endif %}
-            {% endfor %}
-            {% endfor %}
-            {% elseif location.categories|length > 1 %}
-            {% for category in location.categories %}
+                        {%~ for item in location.items %}
+                            {%- if item.data.zoneId == zone.data.id %}
+            {{- _self.outputItem(item, location, 'h3', query) }}
+                            {%- endif %}
+                        {%- endfor %}
+                    {%- endfor %}
+                {%- elseif location.categories|length > 1 %}
+                    {%- for category in location.categories %}
             <h2>{{ category.data.name }}</h2>
-            {% for item in location.items %}
-            {% if item.data.groupId == category.data.cid %}
-            {{ _self.outputItem(item, location, 'h3', query) }}
-            {% endif %}
-            {% endfor %}
-            {% endfor %}
-            {% else %}
-            {% for item in location.items %}
-            {{ _self.outputItem(item, location, 'h2', query) }}
-            {% endfor %}
-            {% endif %}
-            {% else %}
+                        {%~ for item in location.items %}
+                            {%- if item.data.groupId == category.data.cid %}
+            {{- _self.outputItem(item, location, 'h3', query) }}
+                            {%- endif %}
+                        {%- endfor %}
+                    {%- endfor %}
+                {%- else %}
+                    {%- for item in location.items %}
+            {{- _self.outputItem(item, location, 'h2', query) }}
+                    {%- endfor %}
+                {%- endif %}
+            {%~ else %}
             <div class="alert alert-failure">
-            No options were found.
+                No options were found.
             </div>
-            {% endif %}
+            {%- endif %}
         </div>
     </div>
 </div>
-
 {% endblock %}

@@ -1,53 +1,51 @@
 {% extends 'page.html.twig' %}
 
 {% macro outputItem(item, location) %}
-<li><a href="{{ url_for('item', {'location': location.slug, 'item': item.slug}) }}">{{ item.data.name }}</a></h2>
+<li><a href="{{ url_for('item', {'location': location.slug, 'item': item.slug}) }}">{{ item.data.name }}</a></li>
 {% endmacro %}
 
 {% block content %}
 {{ parent() }}
-
-{% if locations %}
-{% for location in locations %}
-{% if location.items %}
+{%- if locations %}
+    {%- for location in locations %}
+        {%- if location.items %}
 <h2><a href="{{ url_for('location', {'location': location.slug}) }}">{{ location.data.name }}</a></h2>
 <ul>
-{% if location.zones|length > 1 %}
-{% for zone in location.zones %}
+    {%~ if location.zones|length > 1 %}
+        {%- for zone in location.zones %}
     <li>{{ zone.data.name }}
         <ul>
-        {% for item in location.items %}
-        {% if item.data.zoneId == zone.data.id %}
+            {%~ for item in location.items %}
+                {%- if item.data.zoneId == zone.data.id %}
             {{ _self.outputItem(item, location) }}
-        {% endif %}
-        {% endfor %}
+                {%- endif %}
+            {%- endfor %}
         </ul>
     </li>
-{% endfor %}
-{% elseif location.categories|length > 1 %}
-{% for category in location.categories %}
+        {%~ endfor %}
+    {%- elseif location.categories|length > 1 %}
+        {%- for category in location.categories %}
     <li>{{ category.data.name }}
         <ul>
-        {% for item in location.items %}
-        {% if item.data.groupId == category.data.cid %}
+            {%~ for item in location.items %}
+                {%- if item.data.groupId == category.data.cid %}
             {{ _self.outputItem(item, location) }}
-        {% endif %}
-        {% endfor %}
+                {%- endif %}
+            {%- endfor %}
         </ul>
     </li>
-{% endfor %}
-{% else %}
-{% for item in location.items %}
+        {%~ endfor %}
+    {%- else %}
+        {%~ for item in location.items %}
     {{ _self.outputItem(item, location) }}
-{% endfor %}
-{% endif %}
+        {%- endfor %}
+    {%- endif %}
 </ul>
-{% endif %}
-{% endfor %}
-{% else %}
+        {%- endif %}
+    {%- endfor %}
+{%- else %}
 <div class="alert alert-failure">
-No locations are currently available to book.
+    No locations are currently available to book.
 </div>
-{% endif %}
-
+{%- endif %}
 {% endblock %}
