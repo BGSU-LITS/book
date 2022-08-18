@@ -7,6 +7,7 @@ namespace Lits\Action;
 use League\Period\Datepoint;
 use Lits\Config\BookConfig;
 use Lits\LibCal\Data\Space\FormSpaceData;
+use Lits\LibCal\Data\Space\QuestionSpaceData;
 use Lits\Meta\CategoryMeta;
 use Lits\Meta\ItemMeta;
 use Lits\Meta\LocationMeta;
@@ -24,10 +25,6 @@ trait TraitBookTime
         CategoryMeta $category,
         ItemMeta $item
     ): FormSpaceData {
-        if (!($this->settings['book'] instanceof BookConfig)) {
-            throw new HttpInternalServerErrorException($this->request);
-        }
-
         $formid = $item->data->formid ?? 0;
 
         if ($formid === 0) {
@@ -38,9 +35,17 @@ trait TraitBookTime
             $formid = $location->data->formid ?? 0;
         }
 
-        $form = false;
+        $form = $this->findFormById($formid);
 
+        return $this->modifyForm($form, $item);
+    }
+
+    /** @throws HttpInternalServerErrorException */
+    private function findFormById(int $formid): FormSpaceData
+    {
         try {
+            $form = false;
+
             if ($formid !== 0) {
                 $result = $this->client->space()
                     ->form($formid)
@@ -50,29 +55,31 @@ trait TraitBookTime
                 $form = \reset($result);
             }
 
-            if ($form === false) {
-                $form = FormSpaceData::fromArray([
-                    'id' => 0,
-                    'name' => 'Name & Email',
-                    'fields' => [
-                        'fname' => [
-                            'label' => 'First Name',
-                            'type' => 'string',
-                            'required' => true,
-                        ],
-                        'lname' => [
-                            'label' => 'Last Name',
-                            'type' => 'string',
-                            'required' => true,
-                        ],
-                        'email' => [
-                            'label' => 'Email',
-                            'type' => 'string',
-                            'required' => true,
-                        ],
-                    ],
-                ]);
+            if ($form !== false) {
+                return $form;
             }
+
+            return FormSpaceData::fromArray([
+                'id' => 0,
+                'name' => 'Name & Email',
+                'fields' => [
+                    'fname' => [
+                        'label' => 'First Name',
+                        'type' => 'string',
+                        'required' => true,
+                    ],
+                    'lname' => [
+                        'label' => 'Last Name',
+                        'type' => 'string',
+                        'required' => true,
+                    ],
+                    'email' => [
+                        'label' => 'Email',
+                        'type' => 'string',
+                        'required' => true,
+                    ],
+                ],
+            ]);
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
@@ -80,14 +87,6 @@ trait TraitBookTime
                 $exception
             );
         }
-
-        foreach ($this->settings['book']->questions as $question) {
-            if (isset($form->fields[$question->id])) {
-                $form->fields[$question->id]->type = $question->type;
-            }
-        }
-
-        return $form;
     }
 
     /**
@@ -151,6 +150,54 @@ trait TraitBookTime
                 $exception
             );
         }
+    }
+
+    /** @throws HttpInternalServerErrorException */
+    private function modifyForm(
+        FormSpaceData $form,
+        ItemMeta $item
+    ): FormSpaceData {
+        if (!($this->settings['book'] instanceof BookConfig)) {
+            throw new HttpInternalServerErrorException($this->request);
+        }
+
+        foreach ($this->settings['book']->questions as $question) {
+            if (isset($form->fields[$question->id])) {
+                $form->fields[$question->id]->type = $question->type;
+            }
+        }
+
+        if ($item->nicknameField !== null) {
+            try {
+                $nickname = QuestionSpaceData::fromArray([
+                    'label' => $item->nicknameField,
+                    'type' => 'string',
+                    'required' => $item->nicknameRequired,
+                ]);
+            } catch (\Throwable $exception) {
+                throw new HttpInternalServerErrorException(
+                    $this->request,
+                    null,
+                    $exception
+                );
+            }
+
+            $fields = $form->fields;
+            $form->fields = [];
+
+            foreach ($fields as $key => $value) {
+                $form->fields[$key] = $value;
+
+                if ($key === 'email') {
+                    $form->fields['nickname'] = $nickname;
+                }
+            }
+
+            // Add to end of array if email field isn't found.
+            $form->fields['nickname'] = $nickname;
+        }
+
+        return $form;
     }
 
     private static function hoursAndMinutes(\DateInterval $interval): string

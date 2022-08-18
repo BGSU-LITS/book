@@ -54,6 +54,14 @@ final class ItemMeta extends Meta
         if (!\is_null($config->lengthDefault)) {
             $this->lengthMaximum = $config->lengthMaximum;
         }
+
+        if (!\is_null($config->nicknameField)) {
+            $this->nicknameField = $config->nicknameField;
+        }
+
+        if (!\is_null($config->nicknameRequired)) {
+            $this->nicknameRequired = $config->nicknameRequired;
+        }
     }
 
     public function loadPeriod(Period $period): void

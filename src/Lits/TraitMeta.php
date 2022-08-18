@@ -11,4 +11,6 @@ trait TraitMeta
     public ?\DateInterval $lengthDefault = null;
     public ?\DateInterval $lengthMinimum = null;
     public ?\DateInterval $lengthMaximum = null;
+    public ?string $nicknameField = null;
+    public ?bool $nicknameRequired = null;
 }
