@@ -38,6 +38,14 @@ final class TimeAction extends Action
             try {
                 $data = PayloadReserveSpaceData::fromArray($context['post']);
 
+                if (\is_string($data->nickname)) {
+                    $data->nickname .= ' - ';
+                } else {
+                    $data->nickname = '';
+                }
+
+                $data->nickname .= $data->fname . ' ' . $data->lname;
+
                 $response = $this->client->space()
                     ->reserve($data)
                     ->send();
