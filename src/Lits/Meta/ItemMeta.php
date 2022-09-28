@@ -68,8 +68,8 @@ final class ItemMeta extends Meta
     {
         $this->times = [];
 
-        /** @var \DateTimeInterface $day */
-        foreach ($period->getDatePeriod('1 day') as $day) {
+        /** @var \DateTimeImmutable $day */
+        foreach ($period->dateRangeForward('1 day') as $day) {
             $this->times[$day->format('Y-m-d')] = [];
         }
     }
@@ -115,9 +115,9 @@ final class ItemMeta extends Meta
             }
 
             $period = new Period($start, $end);
-            $datePeriod = $period->getDatePeriod($this->lengthDivisor);
+            $datePeriod = $period->dateRangeForward($this->lengthDivisor);
 
-            /** @var \DateTimeInterface $datetime */
+            /** @var \DateTimeImmutable $datetime */
             foreach ($datePeriod as $datetime) {
                 $time = $datetime->format('H:i');
 
@@ -143,7 +143,7 @@ final class ItemMeta extends Meta
         }
 
         return \iterator_count(
-            $period->getDatePeriod($this->lengthDivisor)
+            $period->dateRangeForward($this->lengthDivisor)
         );
     }
 }

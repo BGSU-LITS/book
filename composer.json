@@ -13,7 +13,7 @@
         "ext-date": "*",
         "ext-pcre": "*",
         "bgsu-lits/framework": "^1.5",
-        "bgsu-lits/libcal": "^0.4",
+        "bgsu-lits/libcal": "^0.5",
         "cocur/slugify": "^4.0",
         "desarrolla2/cache": "^3.0",
         "guzzlehttp/guzzle": "^7.3",
@@ -27,7 +27,11 @@
         "roave/security-advisories": "dev-master"
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "bamarni/composer-bin-plugin": true,
+            "neronmoon/scriptsdev": true
+        }
     },
     "extra": {
         "scripts-dev": {

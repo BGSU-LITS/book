@@ -67,7 +67,7 @@ final class TimeAction extends Action
 
         $context['location'] = $this->findLocation();
         $context['location']->loadItems(
-            $this->getItems($context['location']->id),
+            $this->getItems($context['location']->id, ['seats' => true]),
             $this->settings['book']->items
         );
 
@@ -76,7 +76,7 @@ final class TimeAction extends Action
         );
 
         $context['item'] = $this->findItem($context['location']);
-        $context['item']->loadPeriod($context['datepoint']->getDay());
+        $context['item']->loadPeriod($context['datepoint']->day());
 
         $availability = $this->getAvailability(
             $context['item']->id,

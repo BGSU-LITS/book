@@ -31,7 +31,7 @@ final class ItemAction extends Action
         $context['location'] = $this->findLocation();
 
         $context['location']->loadItems(
-            $this->getItems($context['location']->id),
+            $this->getItems($context['location']->id, ['seats' => true]),
             $this->settings['book']->items
         );
 
@@ -56,8 +56,8 @@ final class ItemAction extends Action
         // back one day so it starts on a Sunday.
         $context['item']->loadPeriod(
             Datepoint::create($date)
-                ->modify('+1 day')
-                ->getIsoWeek()
+                ->add(new \DateInterval('P1D'))
+                ->isoWeek()
                 ->move('-1 day')
         );
 
