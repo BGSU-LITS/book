@@ -10,110 +10,126 @@
 </title>
 {% block styles %}
 <style>
-.alert {
+.bgsu_common_alert {
     background: #f2f2f2;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin: 0 0 20px;
-    padding: 4px 8px;
+    border-radius: 1rem;
+    color: #000;
+    margin: 1rem 0;
+    padding: 1rem;
 }
 
-.alert.alert-failure {
-    background: #fff2f2;
-    border-color: #c00;
+.bgsu_common_alert__failure {
+    background: #a00;
+    color: #fff;
 }
 
-.alert.alert-warning {
-    background: #fffff2;
-    border-color: #f9f6b8;
+.bgsu_common_alert__warning {
+    background: #f5c163;
+    color: #000;
 }
 
-.alert.alert-success {
-    background: #f2fff2;
-    border-color: #0c0;
+.bgsu_common_alert__success {
+    background: #1c626d;
+    color: #fff;
 }
 
-.list-breadcrumb {
-    color: #595959;
-    font-size: .875em;
-    list-style: none;
-    margin: 0 0 20px;
-    padding: 0;
-}
-
-.list-breadcrumb > li {
-    display: inline-block;
-    font-weight: 400;
-    word-break: break-word;
-}
-
-.list-breadcrumb > li::after {
-    border-left: 1px solid;
-    content: "";
-    float: right;
-    height: .875em;
-    margin: 4px 8px;
-    transform: rotate(15deg);
-    vertical-align: middle;
-}
-
-.list-breadcrumb > li:last-child::after {
-    display: none;
-}
-
-.list-inline {
-    list-style: none;
+.bgsu_common_list_breadcrumb,
+.bgsu_common_list_comma,
+.bgsu_common_list_inline {
+    display: block;
     margin: 0;
     padding: 0;
 }
 
-.list-inline > li {
-    display: inline-block;
+.bgsu_common_list_breadcrumb > li,
+.bgsu_common_list_comma > li,
+.bgsu_common_list_inline > li {
+    display: inline;
+    margin: 0;
+    padding: 0;
 }
 
-.list-inline > li + li {
-    padding-left: 4px;
+.bgsu_common_list_breadcrumb > li + li:before {
+    content: " / ";
 }
 
-.record > a {
+.bgsu_common_list_comma > li:after {
+    content: ", ";
+}
+
+.bgsu_common_list_comma > li:last-child:after {
+    display: none;
+}
+
+.bgsu_common_records {
+    display: block;
+    margin: 1rem 0;
+    padding: 0;
+}
+
+.bgsu_common_records_item {
     display: flex;
+    margin: 1rem 0;
+    padding: 0;
     text-decoration: none;
 }
 
-.record > a > .record-details {
-    flex: 1 1 auto;
-    margin-bottom: 20px;
-}
-
-.record > a > .record-details > .record-title {
-    text-decoration: underline;
-}
-
-.record > a > .record-details > .record-description {
+.bgsu_common_records_item_description {
     color: #000;
 }
 
-.record > a > .record-image {
-    background-position: 50%;
+.bgsu_common_records_item_details {
+    flex: 1 0 0%;
+}
+
+.bgsu_common_records_item_image {
+    background-position: 100% 0;
     background-repeat: no-repeat;
     background-size: contain;
-    flex: 0 0 auto;
-    height: 128px;
-    margin: 0 0 20px 20px;
-    width: 192px;
-}
-
-.sidebar {
-    display: flex;
-}
-
-.sidebar > .sidebar-left {
-    background: #f2f2f2;
-    border-radius: 4px;
     flex: 0 0 20%;
-    margin: 0 16px 0 0;
+    margin-left: 1rem;
+    min-height: 8rem;
+}
+
+.bgsu_common_records_item_image img {
+    height: 100%;
+    object-fit: contain;
+    width: 100%;
+}
+
+.bgsu_common_records_item_title {
+    text-decoration: underline;
+}
+
+.bgsu_common_sidebar {
+    display: flex;
+    margin: 1rem 0;
+    padding: 0;
+}
+
+.bgsu_common_sidebar > * {
+    flex: 1 0 0%;
+    order: 1;
+}
+
+.bgsu_common_sidebar_left,
+.bgsu_common_sidebar_right {
+    background: #f2f2f2;
+    border-radius: 1rem;
+    color: #000;
+    flex: 0 0 20%;
+    margin: 0;
+    padding: 1rem;
+}
+
+.bgsu_common_sidebar_left {
+    margin-right: 1rem;
     order: 0;
-    padding: 0 8px 4px 8px;
+}
+
+.bgsu_common_sidebar_right {
+    margin-left: 1rem;
+    order: 1;
 }
 </style>
 {% endblock %}
@@ -139,8 +155,10 @@
 {%- elseif settings.template.site %}
 <h1>{{ settings.template.site }}</h1>
 {%- endif %}
+{% block breadcrumb %}
+{% endblock %}
 {%- for message in messages %}
-<div class="alert alert-{{ message.level }}">
+<div class="bgsu_common_alert bgsu_common_alert__{{ message.level }}">
     {{ message.message }}
 </div>
 {%- endfor %}

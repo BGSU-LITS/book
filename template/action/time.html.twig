@@ -1,63 +1,41 @@
 {% set title = datepoint|date('l, F j, Y') ~ ' at ' ~ datepoint|date('g:ia') %}
 {% extends 'page.html.twig' %}
 
-{% block styles %}
-{{ parent() }}
-<style>
-label[for] {
-    font-weight: bold;
-}
-
-textarea {
-    height: 180px;
-    width: 360px;
-}
-
-.image {
-    float: right;
-    height: 152px;
-    margin: 0 0 20px 20px;
-}
-
-.record-description > .list-inline {
-    font-weight: bold;
-}
-
-.record-description > .list-inline > li:after {
-    content: ", ";
-}
-
-.record-description > .list-inline > li:last-child::after {
-    display: none;
-}
-</style>
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="bgsu_common_list_breadcrumb">
+        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li><a href="{{ url_for('location', {location: location.slug}) }}">{{ location.data.name }}</a></li><li><a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}">{{ item.data.name }}</a></li><li aria-current="page">{{ title }}</li>
+    </ol>
+</nav>
 {% endblock %}
 
 {% block content %}
 {{ parent() }}
-<nav aria-label="breadcrumb">
-    <ol class="list-breadcrumb">
-        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li><a href="{{ url_for('location', {location: location.slug}) }}">{{ location.data.name }}</a></li><li><a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}">{{ item.data.name }}</a></li><li aria-current="page">{{ title }}</li>
-    </ol>
-</nav>
-{% if item.data.image %}
-<img src="{{ item.data.image }}" class="image">
-{% endif %}
-<h2>{{ item.data.name }}</h2>
-<div class="record-description">
-    <ul class="list-inline">
-        {%~ if item.data.capacity %}
-        <li>Capacity: {{ item.data.capacity }}</li>
-        {%~ endif %}
-        {%~ if item.data.isAccessible %}
-        <li>Accessible Space</li>
-        {%~ endif %}
-        {%~ if item.data.isPowered %}
-        <li>Power Available</li>
-        {%~ endif %}
-    </ul>
-    {{ item.data.description|raw -}}
+<div class="bgsu_common_records_item">
+    <div class="bgsu_common_records_item_details">
+        <div class="bgsu_common__closer">
+            <h2>{{ item.data.name }}</h2>
+        </div>
+        <div class="bgsu_common_records_item_description">
+            <ul class="bgsu_common_list_comma bgsu_common__small">
+                {%~ if item.data.capacity %}
+                <li>Capacity: {{ item.data.capacity }}</li>
+                {%~ endif %}
+                {%~ if item.data.isAccessible %}
+                <li>Accessible Space</li>
+                {%~ endif %}
+                {%~ if item.data.isPowered %}
+                <li>Power Available</li>
+                {%~ endif %}
+            </ul>
+            {{ item.data.description|raw -}}
+        </div>
+    </div>
+    {%~ if item.data.image %}
+    <div class="bgsu_common_records_item_image" style="background-image:url({{ item.data.image }})"></div>
+    {%~ endif %}
 </div>
+
 {% if options %}
 <form method="post" action="{{ url_for('time', {location: location.slug, item: item.slug, date: datepoint|date('Y-m-d'), time: datepoint|date('H:i')}) }}">
     <input type="hidden" name="start" value="{{ post.start }}">
@@ -99,12 +77,16 @@ textarea {
         {%~ endif %}
     </p>
     {%~ endfor %}
-    <input type="submit" value="Reserve" class="button button-primary">
+    <p>
+        <button type="submit" class="bgsu_common_button bgsu_common_button__arrow bgsu_common_button__large bgsu_common_button__primary">
+            Reserve
+        </button>
+    </p>
 </form>
 {% else %}
-<div class="alert alert-failure">
+<div class="bgsu_common_alert bgsu_common_alert__failure">
     This date and time is not available.
 </div>
-<a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}" class="button button-primary">Choose a different time</a>
+<a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}" class="bgsu_common_button bgsu_common_button__large">Choose a different time</a>
 {% endif %}
 {% endblock %}

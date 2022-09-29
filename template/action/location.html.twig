@@ -3,205 +3,164 @@
 
 {% macro outputItem(item, location, heading, query) %}
 {% set first = item.data.availability|first.from %}
-            <div class="record">
-                <a href="
-                    {{- url_for('item', {'location': location.slug, 'item': item.slug}) -}}
-                    {%- if query.date -%}
-                        ?date={{ first|date("Y-m-d") -}}
-                            {%- if query.time -%}
-                                &amp;time={{ first|date("H:i") -}}
-                            {%- endif -%}
-                    {%- endif -%}
-                ">
-                    <div class="record-details">
-                        <{{ heading }} class="record-title">{{ item.data.name }}</{{ heading }}>
-                        <div class="record-description">
-                            <ul class="list-inline">
-                                {%~ if item.data.capacity %}
-                                <li>Capacity: {{ item.data.capacity }}</li>
-                                {%~ endif %}
-                                {%~ if item.data.isAccessible %}
-                                <li>Accessible Space</li>
-                                {%~ endif %}
-                                {%~ if item.data.isPowered %}
-                                <li>Power Available</li>
-                                {%~ endif %}
-                            </ul>
-                            {{ item.data.description|raw -}}
-                            <div><strong>Available on {{ first|date('l, F j \\a\\t g:i A') }}</strong></div>
-                        </div>
+            <a class="bgsu_common_records_item" href="
+                {{- url_for('item', {'location': location.slug, 'item': item.slug}) -}}
+                {%- if query.date -%}
+                    ?date={{ first|date("Y-m-d") -}}
+                        {%- if query.time -%}
+                            &amp;time={{ first|date("H:i") -}}
+                        {%- endif -%}
+                {%- endif -%}
+            ">
+                <div class="bgsu_common_records_item_details">
+                    <{{ heading }} class="bgsu_common_records_item_title">{{ item.data.name }}</{{ heading }}>
+                    <div class="bgsu_common_records_item_description">
+                        <ul class="bgsu_common_list_comma bgsu_common__small bgsu_common__closer">
+                            {%~ if item.data.capacity %}
+                            <li>Capacity: {{ item.data.capacity }}</li>
+                            {%~ endif %}
+                            {%~ if item.data.isAccessible %}
+                            <li>Accessible Space</li>
+                            {%~ endif %}
+                            {%~ if item.data.isPowered %}
+                            <li>Power Available</li>
+                            {%~ endif %}
+                        </ul>
+                        {{ item.data.description|raw }}
+                        <div><strong>Available on {{ first|date('l, F j \\a\\t g:i A') }}</strong></div>
                     </div>
-                    {%~ if item.data.image %}
-                    <div class="record-image" style="background-image:url({{ item.data.image }})"></div>
-                    {%~ endif %}
-                </a>
-            </div>
+                </div>
+                {%~ if item.data.image %}
+                <div class="bgsu_common_records_item_image" style="background-image:url({{ item.data.image }})"></div>
+                {%~ endif %}
+            </a>
 {% endmacro %}
-
-{% block styles %}
-{{ parent() }}
-<style>
-form > p {
-    white-space: nowrap;
-}
-
-form > p > input[type="range"] {
-    vertical-align: middle;
-}
-
-form > p > input[type="text"] {
-    box-sizing: border-box;
-    width: 100%;
-}
-
-form > p > .icon-remove {
-    left: -24px;
-    margin: 0 4px;
-    position: relative;
-    text-decoration: none;
-}
-
-form > p > .icon-remove::before {
-    color: #c00;
-    content: "×";
-    font-weight: 700;
-}
-
-.record-description > .list-inline {
-    font-weight: bold;
-}
-
-.record-description > .list-inline > li:after {
-    content: ", ";
-}
-
-.record-description > .list-inline > li:last-child::after {
-    display: none;
-}
-</style>
-{% endblock %}
 
 {% block scripts %}
 {{ parent() }}
-<script src="https://lib.bgsu.edu/template/1.3.2/flatpickr.js"></script>
+<script src="/template/2.0.0-b5/flatpickr.js"></script>
 <script>
-(function (field, clear) {
-    var toggle = function(selectedDates, dateStr, instance) {
-        if (dateStr === '') {
-            clear.style.display = 'none';
-        } else {
-            clear.style.display = 'inline';
-        }
-    }
+(function (time, date, capacity) {
+    (function (clear) {
+        const toggle = function (selectedDates, dateString, instance) {
+            clear.style.display = dateString === '' ? 'none' : 'inline';
+        };
 
-    bgsu_flatpickr.setup(field, {
-        altFormat: 'h:i K',
-        altInput: true,
-        dateFormat: "H:i",
-        enableTime: true,
-        noCalendar: true,
-        onChange: toggle,
-        onReady: toggle
-    });
+        bgsu_flatpickr.setup(time, {
+            altFormat: 'h:i K',
+            altInput: true,
+            dateFormat: 'H:i',
+            enableTime: true,
+            noCalendar: true,
+            onChange: toggle,
+            onReady: toggle,
+        });
 
-    clear.onclick = function() {
-        field._flatpickr.clear();
-        return false;
-    };
-})(
-    document.getElementById('time'),
-    document.getElementById('time-clear')
-);
+        clear.addEventListener('click', () => {
+            time._flatpickr.clear();
+            return false;
+        });
+    }(document.getElementById('time-clear')));
 
-(function (field, clear) {
-    var toggle = function(selectedDates, dateStr, instance) {
-        if (dateStr === '') {
-            clear.style.display = 'none';
-        } else {
-            clear.style.display = 'inline';
-        }
+    (function (clear) {
+        const toggle = function (selectedDates, dateString, instance) {
+            clear.style.display = dateString === '' ? 'none' : 'inline';
 
-        var time = document.getElementById('time');
-
-        if (time._flatpickr) {
-            if (dateStr === '') {
-                time._flatpickr.clear();
-                time._flatpickr._input.setAttribute('disabled', 'disabled');
-            } else {
-                time._flatpickr._input.removeAttribute('disabled');
+            if (time._flatpickr) {
+                if (dateString === '') {
+                    time._flatpickr.clear();
+                    time._flatpickr._input.setAttribute(
+                        'disabled',
+                        'disabled',
+                    );
+                } else {
+                    time._flatpickr._input.removeAttribute('disabled');
+                }
             }
-        }
-    }
+        };
 
-    bgsu_flatpickr.setup(field, {
-        altFormat: 'F j, Y',
-        altInput: true,
-        minDate: '{{ location.availability|date("Y-m-d") }}',
-        maxDate: '{{ "+6 months"|date("Y-m-d") }}',
-        onChange: toggle,
-        onReady: toggle
+        bgsu_flatpickr.setup(date, {
+            altFormat: 'F j, Y',
+            altInput: true,
+            minDate: '{{ location.availability|date("Y-m-d") }}',
+            maxDate: '{{ "+6 months"|date("Y-m-d") }}',
+            onChange: toggle,
+            onReady: toggle,
+        });
+
+        clear.addEventListener('click', () => {
+            date._flatpickr.clear();
+            return false;
+        });
+    }(document.getElementById('date-clear')));
+
+    capacity.addEventListener('input', function () {
+        this.nextElementSibling.value = this.value > 1 ? this.value : 'None';
     });
 
-    clear.onclick = function() {
-        field._flatpickr.clear();
-        return false;
-    };
-})(
+    capacity.dispatchEvent(new Event('input'));
+}(
+    document.getElementById('time'),
     document.getElementById('date'),
-    document.getElementById('date-clear')
-);
-
-(function(capacity) {
-    capacity.oninput = function() {
-        this.nextElementSibling.value = this.value > 1 ? this.value : 'None';
-    }
-
-    capacity.oninput();
-})(document.getElementById('capacity'));
+    document.getElementById('capacity'),
+));
 </script>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="bgsu_common_list_breadcrumb">
+        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li aria-current="page">{{ title }}</li>
+    </ol>
+</nav>
 {% endblock %}
 
 {% block content %}
 {{ parent() }}
-<nav aria-label="breadcrumb">
-    <ol class="list-breadcrumb">
-        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li aria-current="page">{{ title }}</li>
-    </ol>
-</nav>
 {{ location.config.description|raw }}
-<div class="sidebar">
-    <div class="sidebar-left">
-        <h2 class="sidebar-title">Narrow Options</h2>
+<div class="bgsu_common_sidebar">
+    <div class="bgsu_common_sidebar_left">
+        <h2 class="bgsu_common_sidebar_title bgsu_common__title">Narrow Options</h2>
         <form method="get" action="{{ url_for('location', {location: location.slug}) }}">
-            <p>
-                <label for="date">Date:</label><br>
-                <input type="text" name="date" id="date" value="{{ query.date }}">
-                <a id="date-clear" class="icon icon-remove" href="#" title="Clear Date"></a>
-            </p>
-            <p>
-                <label for="date">Time:</label><br>
-                <input type="text" name="time" id="time" value="{{ query.time }}">
-                <a id="time-clear" class="icon icon-remove" href="#" title="Clear Time"></a>
-            </p>
+            <div class="bgsu_common_form_group">
+                <label for="date">Date:</label>
+                <div>
+                    <input type="text" name="date" id="date" value="{{ query.date }}">
+                    <a id="date-clear" class="bgsu_common_icon bgsu_common_icon__remove bgsu_common_icon__right" href="#" title="Clear Date"></a>
+                </div>
+            </div>
+            <div class="bgsu_common_form_group">
+                <label for="time">Time:</label>
+                <div>
+                    <input type="text" name="time" id="time" value="{{ query.time }}">
+                    <a id="time-clear" class="bgsu_common_icon bgsu_common_icon__remove bgsu_common_icon__right" href="#" title="Clear Time"></a>
+                </div>
+            </div>
             {%~ if location.capacity > 1 %}
-            <p>
-                <label for="capacity">Minimum Capacity:</label><br>
-                <input type="range" name="capacity" id="capacity" min="1" max="{{ location.capacity }}" value="{{ query.capacity ?: 1 }}">
-                <output>None</output>
-            </p>
+            <div class="bgsu_common_form_group">
+                <label for="capacity">Minimum Capacity:</label>
+                <div>
+                    <input type="range" name="capacity" id="capacity" min="1" max="{{ location.capacity }}" value="{{ query.capacity ?: 1 }}">
+                    <output>None</output>
+                </div>
+            </div>
             {%~ endif %}
-            <p>
-                Limit to:<br>
-                <input type="checkbox" name="accessible" id="accessible"{% if query.accessible %} checked{% endif %}>
-                <label for="accessible">Accessible Space</label><br>
-                <input type="checkbox" name="powered" id="powered"{% if query.powered %} checked{% endif %}>
-                <label for="powered">Power Available</label>
-            </p>
-            <button type="submit" class="button button-primary">Update</button>
+            <div class="bgsu_common_form_group">
+                <div>Limit to:</div>
+                <div>
+                    <input type="checkbox" name="accessible" id="accessible"{% if query.accessible %} checked{% endif %}>
+                    <label for="accessible">Accessible Space</label><br>
+                </div>
+                <div>
+                    <input type="checkbox" name="powered" id="powered"{% if query.powered %} checked{% endif %}>
+                    <label for="powered">Power Available</label>
+                </div>
+            </div>
+            <button type="submit" class="bgsu_common_button bgsu_common_button__primary">Update</button>
         </form>
     </div>
     <div>
-        <div class="records records-list">
+        <div class="bgsu_common_records">
             {%~ if location.items %}
                 {%- if location.zones|length > 1 %}
                     {%- for zone in location.zones %}
@@ -227,7 +186,7 @@ form > p > .icon-remove::before {
                     {%- endfor %}
                 {%- endif %}
             {%~ else %}
-            <div class="alert alert-failure">
+            <div class="bgsu_common_alert bgsu_common_alert__failure">
                 No options were found.
             </div>
             {%- endif %}
