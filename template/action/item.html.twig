@@ -85,7 +85,7 @@
 
 {% block scripts %}
 {{ parent() }}
-<script src="/template/2.0.0-b5/flatpickr.js"></script>
+<script src="/template/2.0.0-b7/flatpickr.js"></script>
 <script>
 (function (field) {
     bgsu_flatpickr.setup(field, {
@@ -136,15 +136,15 @@
     {%~ endif %}
 </div>
 <div>
-    <a{%- if item.times|keys|first > 'now'|date('Y-m-d') %} href="{{ url_for('item', {'location': location.slug, 'item': item.slug, 'date': item.times|keys|first|date_modify('-1 week')|date('Y-m-d')}) }}"{% else %} disabled{% endif %} class="bgsu_common_button bgsu_common_button__large">
+    <a{%- if item.times|keys|first > 'now'|date('Y-m-d') %} href="{{ url_for('item', {'location': location.slug, 'item': item.slug, 'date': item.times|keys|first|date_modify('-1 week')|date('Y-m-d')}) }}"{% else %} disabled{% endif %} class="bgsu_common_button">
         « Previous Week
     </a>
-    <a href="{{ url_for('item', {'location': location.slug, 'item': item.slug, 'date': item.times|keys|first|date_modify('+1 week')|date('Y-m-d')}) }}" class="bgsu_common_button bgsu_common_button__large">
+    <a href="{{ url_for('item', {'location': location.slug, 'item': item.slug, 'date': item.times|keys|first|date_modify('+1 week')|date('Y-m-d')}) }}" class="bgsu_common_button">
         Next Week »
     </a>
     <span class="date_container">
         <input type="text" id="date" name="date" value="{{ query.date }}">
-        <label for="date" class="bgsu_common_button bgsu_common_button__large">Select Date</label>
+        <label for="date" class="bgsu_common_button">Select Date</label>
     </span>
 </div>
 {% if item.times %}

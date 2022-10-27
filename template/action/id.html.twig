@@ -16,7 +16,7 @@
         <div class="bgsu_common__closer">
             <h2>{{ booking.status }} Reservation for {{ time }}</h2>
             <form method="post" action="{{ url_for('id', {id: booking.bookId}) }}">
-                <p><button type="submit" name="cancel" value="1" class="bgsu_common_button bgsu_common_button__arrow bgsu_common_button__large bgsu_common_button__failure">Cancel this booking</button></p>
+                <p><button type="submit" name="cancel" value="1" class="bgsu_common_button bgsu_common_button__arrow bgsu_common_button__failure">Cancel this booking</button></p>
             </form>
             <h2>{{ item.data.name }}</h2>
         </div>
@@ -40,7 +40,7 @@
     {%~ endif %}
 </div>
 <p class="bgsu_common__closer">
-    <a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ booking.fromDate|date('Y-m-d') }}" class="bgsu_common_button bgsu_common_button__large">
+    <a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ booking.fromDate|date('Y-m-d') }}" class="bgsu_common_button">
         Make another reservation
     </a>
 </p>

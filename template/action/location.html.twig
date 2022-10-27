@@ -38,7 +38,7 @@
 
 {% block scripts %}
 {{ parent() }}
-<script src="/template/2.0.0-b5/flatpickr.js"></script>
+<script src="/template/2.0.0-b7/flatpickr.js"></script>
 <script>
 (function (time, date, capacity) {
     (function (clear) {
@@ -121,7 +121,7 @@
 <div class="bgsu_common_sidebar">
     <div class="bgsu_common_sidebar_left">
         <h2 class="bgsu_common_sidebar_title bgsu_common__title">Narrow Options</h2>
-        <form method="get" action="{{ url_for('location', {location: location.slug}) }}">
+        <form method="get" action="{{ url_for('location', {location: location.slug}) }}" class="bgsu_common_form">
             <div class="bgsu_common_form_group">
                 <label for="date">Date:</label>
                 <div>
@@ -156,7 +156,7 @@
                     <label for="powered">Power Available</label>
                 </div>
             </div>
-            <button type="submit" class="bgsu_common_button bgsu_common_button__primary">Update</button>
+            <button type="submit" class="bgsu_common_button bgsu_common_button__small bgsu_common_button__primary">Update</button>
         </form>
     </div>
     <div>

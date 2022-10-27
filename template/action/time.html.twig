@@ -78,7 +78,7 @@
     </p>
     {%~ endfor %}
     <p>
-        <button type="submit" class="bgsu_common_button bgsu_common_button__arrow bgsu_common_button__large bgsu_common_button__primary">
+        <button type="submit" class="bgsu_common_button bgsu_common_button__arrow bgsu_common_button__primary">
             Reserve
         </button>
     </p>
@@ -87,6 +87,6 @@
 <div class="bgsu_common_alert bgsu_common_alert__failure">
     This date and time is not available.
 </div>
-<a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}" class="bgsu_common_button bgsu_common_button__large">Choose a different time</a>
+<a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}" class="bgsu_common_button">Choose a different time</a>
 {% endif %}
 {% endblock %}
