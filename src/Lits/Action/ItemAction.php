@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Lits\Action;
 
 use League\Period\Datepoint;
+use League\Period\Period;
 use Lits\Action;
 use Lits\Config\BookConfig;
+use Lits\Meta\ItemMeta;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpInternalServerErrorException;
 use Slim\Exception\HttpNotFoundException;
@@ -36,30 +38,7 @@ final class ItemAction extends Action
         );
 
         $context['item'] = $this->findItem($context['location']);
-
-        /** @var ?string $date */
-        $date = $this->request->getQueryParam('date');
-
-        if (\is_null($date)) {
-            if (isset($this->data['date']) && $this->data['date'] !== '') {
-                $date = $this->data['date'];
-            } elseif (isset($context['item']->data->availability[0])) {
-                $date = $context['item']->data->availability[0]
-                    ->from->format('Y-m-d');
-            } else {
-                $date = 'today';
-            }
-        }
-
-        // ISO weeks start on Mondays, so move the requested day one day
-        // forward to calculate the correct week, and then move the range
-        // back one day so it starts on a Sunday.
-        $context['item']->loadPeriod(
-            Datepoint::create($date)
-                ->add(new \DateInterval('P1D'))
-                ->isoWeek()
-                ->move('-1 day')
-        );
+        $context['item']->loadPeriod($this->findPeriod($context['item']));
 
         $availability = $this->getAvailability(
             $context['item']->id,
@@ -89,5 +68,45 @@ final class ItemAction extends Action
                 $exception
             );
         }
+    }
+
+    /** @throws HttpInternalServerErrorException */
+    private function findPeriod(ItemMeta $item): Period
+    {
+        /** @var ?string $date */
+        $date = $this->request->getQueryParam('date');
+
+        if (\is_null($date)) {
+            $date = $this->findPeriodDate($item);
+        }
+
+        try {
+            // ISO weeks start on Mondays, so move the requested day one day
+            // forward to calculate the correct week, and then move the range
+            // back one day so it starts on a Sunday.
+            return Datepoint::create($date)
+                ->add(new \DateInterval('P1D'))
+                ->isoWeek()
+                ->move('-1 day');
+        } catch (\Throwable $exception) {
+            throw new HttpInternalServerErrorException(
+                $this->request,
+                null,
+                $exception
+            );
+        }
+    }
+
+    private function findPeriodDate(ItemMeta $item): string
+    {
+        if (isset($this->data['date']) && $this->data['date'] !== '') {
+            return $this->data['date'];
+        }
+
+        if (isset($item->data->availability[0])) {
+            return $item->data->availability[0]->from->format('Y-m-d');
+        }
+
+        return 'today';
     }
 }

@@ -42,6 +42,9 @@ return function (Framework $framework): void {
     // Name of the site.
     $settings['template']->site = 'Bookable Resources';
 
+    // HTML analytics tracking code added to head element for the site.
+    // $settings['template']->analytics = '';
+
     // HTML contact information for the site.
     // $settings['template']->contact = '';
 

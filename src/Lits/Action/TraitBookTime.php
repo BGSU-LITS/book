@@ -168,39 +168,54 @@ trait TraitBookTime
         }
 
         if ($item->nicknameField !== null) {
-            try {
-                $nickname = QuestionSpaceData::fromArray([
-                    'label' => $item->nicknameField,
-                    'type' => 'string',
-                    'required' => $item->nicknameRequired,
-                ]);
-            } catch (\Throwable $exception) {
-                throw new HttpInternalServerErrorException(
-                    $this->request,
-                    null,
-                    $exception
-                );
-            }
-
-            $fields = $form->fields;
-            $form->fields = [];
-
-            foreach ($fields as $key => $value) {
-                $form->fields[$key] = $value;
-
-                if ($key === 'email') {
-                    $form->fields['nickname'] = $nickname;
-                }
-            }
-
-            // Add to end of array if email field isn't found.
-            $form->fields['nickname'] = $nickname;
+            $form = $this->modifyFormNickname($form, $item);
         }
 
         return $form;
     }
 
+    /** @throws HttpInternalServerErrorException */
+    private function modifyFormNickname(
+        FormSpaceData $form,
+        ItemMeta $item
+    ): FormSpaceData {
+        try {
+            $nickname = QuestionSpaceData::fromArray([
+                'label' => $item->nicknameField,
+                'type' => 'string',
+                'required' => $item->nicknameRequired,
+            ]);
+        } catch (\Throwable $exception) {
+            throw new HttpInternalServerErrorException(
+                $this->request,
+                null,
+                $exception
+            );
+        }
+
+        $fields = $form->fields;
+        $form->fields = [];
+
+        foreach ($fields as $key => $value) {
+            $form->fields[$key] = $value;
+
+            if ($key === 'email') {
+                $form->fields['nickname'] = $nickname;
+            }
+        }
+
+        // Add to end of array if email field isn't found.
+        $form->fields['nickname'] = $nickname;
+
+        return $form;
+    }
+
     private static function hoursAndMinutes(\DateInterval $interval): string
+    {
+        return self::hours($interval) . self::minutes($interval);
+    }
+
+    private static function hours(\DateInterval $interval): string
     {
         $result = '';
 
@@ -216,8 +231,15 @@ trait TraitBookTime
             }
         }
 
+        return $result;
+    }
+
+    private static function minutes(\DateInterval $interval): string
+    {
+        $result = '';
+
         if ($interval->i > 0) {
-            $result .= $interval->format('%i Minute');
+            $result = $interval->format('%i Minute');
 
             if ($interval->i > 1) {
                 $result .= 's';

@@ -7,6 +7,7 @@ namespace Lits\Action;
 use Cocur\Slugify\Slugify;
 use Lits\Action;
 use Lits\Config\BookConfig;
+use Lits\LibCal\Data\Space\BookingSpaceData;
 use Lits\LibCal\Exception\NotFoundException;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpInternalServerErrorException;
@@ -32,30 +33,7 @@ final class IdAction extends Action
         }
 
         $context = [];
-
-        try {
-            $result = $this->client->space()
-                ->booking($this->data['id'])
-                ->send();
-        } catch (NotFoundException $exception) {
-            throw new HttpNotFoundException(
-                $this->request,
-                null,
-                $exception
-            );
-        } catch (\Throwable $exception) {
-            throw new HttpInternalServerErrorException(
-                $this->request,
-                null,
-                $exception
-            );
-        }
-
-        $context['booking'] = \reset($result);
-
-        if ($context['booking'] === false) {
-            throw new HttpNotFoundException($this->request);
-        }
+        $context['booking'] = $this->findBooking($this->data['id']);
 
         $slugify = new Slugify();
 
@@ -70,42 +48,13 @@ final class IdAction extends Action
         $post = $this->request->getParsedBody();
 
         if (\is_array($post) && isset($post['cancel'])) {
-            try {
-                $result = $this->client->space()
-                    ->cancel($this->data['id'])
-                    ->send();
+            $this->cancelBooking(
+                $this->data['id'],
+                $this->data['location'],
+                $this->data['item']
+            );
 
-                $this->redirect(
-                    $this->routeCollector->getRouteParser()->urlFor('item', [
-                        'location' => $this->data['location'],
-                        'item' => $this->data['item'],
-                    ])
-                );
-
-                $response = \reset($result);
-
-                if ($response === false || !$response->cancelled) {
-                    $this->message(
-                        'failure',
-                        'The booking could not be cancelled.'
-                    );
-
-                    return;
-                }
-
-                $this->message(
-                    'success',
-                    'The previous booking has been cancelled.'
-                );
-
-                return;
-            } catch (\Throwable $exception) {
-                throw new HttpInternalServerErrorException(
-                    $this->request,
-                    null,
-                    $exception
-                );
-            }
+            return;
         }
 
         $context['location'] = $this->findLocation();
@@ -121,6 +70,81 @@ final class IdAction extends Action
 
         try {
             $this->render($this->template(), $context);
+        } catch (\Throwable $exception) {
+            throw new HttpInternalServerErrorException(
+                $this->request,
+                null,
+                $exception
+            );
+        }
+    }
+
+    /**
+     * @throws HttpInternalServerErrorException
+     * @throws HttpNotFoundException
+     */
+    private function findBooking(string $id): BookingSpaceData
+    {
+        try {
+            $result = $this->client->space()
+                ->booking($id)
+                ->send();
+        } catch (NotFoundException $exception) {
+            throw new HttpNotFoundException(
+                $this->request,
+                null,
+                $exception
+            );
+        } catch (\Throwable $exception) {
+            throw new HttpInternalServerErrorException(
+                $this->request,
+                null,
+                $exception
+            );
+        }
+
+        $booking = \reset($result);
+
+        if ($booking === false) {
+            throw new HttpNotFoundException($this->request);
+        }
+
+        return $booking;
+    }
+
+    /** @throws HttpInternalServerErrorException */
+    private function cancelBooking(
+        string $id,
+        string $location,
+        string $item
+    ): void {
+        try {
+            $result = $this->client->space()
+                ->cancel($id)
+                ->send();
+
+            $this->redirect(
+                $this->routeCollector->getRouteParser()->urlFor('item', [
+                    'location' => $location,
+                    'item' => $item,
+                ])
+            );
+
+            $response = \reset($result);
+
+            if ($response === false || !$response->cancelled) {
+                $this->message(
+                    'failure',
+                    'The booking could not be cancelled.'
+                );
+
+                return;
+            }
+
+            $this->message(
+                'success',
+                'The previous booking has been cancelled.'
+            );
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,

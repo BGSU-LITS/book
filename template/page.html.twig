@@ -8,6 +8,9 @@
     {{- title and settings.template.site ? ' - ' -}}
     {{- settings.template.site -}}
 </title>
+{% block analytics %}
+{{ settings.template.analytics|raw }}
+{% endblock %}
 {% block styles %}
 <style>
 .bgsu_common_alert {

@@ -23,7 +23,10 @@ final class ItemMeta extends Meta
     /** @var array<string,array<string,bool>> */
     public array $times = [];
 
-    /** @param MetaConfig[] $configs */
+    /**
+     * @param MetaConfig[] $configs
+     * @throws \Exception Length divisor could not be created.
+     */
     public function __construct(ItemSpaceData $data, array $configs)
     {
         $this->id = $data->id;
@@ -43,25 +46,8 @@ final class ItemMeta extends Meta
             $this->emailDomain = $config->emailDomain;
         }
 
-        if (!\is_null($config->lengthDefault)) {
-            $this->lengthDefault = $config->lengthDefault;
-        }
-
-        if (!\is_null($config->lengthDefault)) {
-            $this->lengthMinimum = $config->lengthMinimum;
-        }
-
-        if (!\is_null($config->lengthDefault)) {
-            $this->lengthMaximum = $config->lengthMaximum;
-        }
-
-        if (!\is_null($config->nicknameField)) {
-            $this->nicknameField = $config->nicknameField;
-        }
-
-        if (!\is_null($config->nicknameRequired)) {
-            $this->nicknameRequired = $config->nicknameRequired;
-        }
+        $this->addConfigLength($config);
+        $this->addConfigNickname($config);
     }
 
     public function loadPeriod(Period $period): void
@@ -83,6 +69,60 @@ final class ItemMeta extends Meta
             return;
         }
 
+        $this->loadAvailabilityFirst($first, $availability);
+    }
+
+    public function slots(): int
+    {
+        if (\is_null($this->lengthDefault)) {
+            return 1;
+        }
+
+        try {
+            $period = new Period(
+                new Datepoint(),
+                (new Datepoint())->add($this->lengthDefault)
+            );
+        } catch (PeriodException $exception) {
+            return 1;
+        }
+
+        return \iterator_count(
+            $period->dateRangeForward($this->lengthDivisor)
+        );
+    }
+
+    private function addConfigLength(MetaConfig $config): void
+    {
+        if (!\is_null($config->lengthDefault)) {
+            $this->lengthDefault = $config->lengthDefault;
+        }
+
+        if (!\is_null($config->lengthDefault)) {
+            $this->lengthMinimum = $config->lengthMinimum;
+        }
+
+        if (!\is_null($config->lengthDefault)) {
+            $this->lengthMaximum = $config->lengthMaximum;
+        }
+    }
+
+    private function addConfigNickname(MetaConfig $config): void
+    {
+        if (!\is_null($config->nicknameField)) {
+            $this->nicknameField = $config->nicknameField;
+        }
+
+        if (!\is_null($config->nicknameRequired)) {
+            $this->nicknameRequired = $config->nicknameRequired;
+        }
+    }
+
+    /** @param AvailabilitySpaceData[] $availability */
+    private function loadAvailabilityFirst(
+        AvailabilitySpaceData $first,
+        array $availability
+    ): void {
         $start = $first->from;
         $end = $first->to;
         $set = [];
@@ -106,6 +146,15 @@ final class ItemMeta extends Meta
             }
         }
 
+        $this->loadAvailabilityTimes($start, $end, $set);
+    }
+
+    /** @param array<string,array<string,bool>> $set */
+    private function loadAvailabilityTimes(
+        \DateTime $start,
+        \DateTime $end,
+        array $set
+    ): void {
         foreach (\array_keys($this->times) as $date) {
             $start = $start->modify($date);
             $end = $end->modify($date);
@@ -125,25 +174,5 @@ final class ItemMeta extends Meta
                     isset($set[$datetime->format('Y-m-d')][$time]);
             }
         }
-    }
-
-    public function slots(): int
-    {
-        if (\is_null($this->lengthDefault)) {
-            return 1;
-        }
-
-        try {
-            $period = new Period(
-                new Datepoint(),
-                (new Datepoint())->add($this->lengthDefault)
-            );
-        } catch (PeriodException $exception) {
-            return 1;
-        }
-
-        return \iterator_count(
-            $period->dateRangeForward($this->lengthDivisor)
-        );
     }
 }

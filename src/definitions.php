@@ -15,6 +15,9 @@ use Psr\Http\Message\RequestFactoryInterface as HttpRequestFactory;
 use Psr\Http\Message\StreamFactoryInterface as HttpStreamFactory;
 use Psr\SimpleCache\CacheInterface as Cache;
 
+use function DI\create;
+use function DI\get;
+
 return function (Framework $framework): void {
     $framework->addDefinition(
         Client::class,
@@ -56,16 +59,16 @@ return function (Framework $framework): void {
 
     $framework->addDefinition(
         HttpClient::class,
-        DI\create(GuzzleHttpClient::class)
+        create(GuzzleHttpClient::class)
     );
 
     $framework->addDefinition(
         HttpRequestFactory::class,
-        DI\create(HttpFactory::class)
+        create(HttpFactory::class)
     );
 
     $framework->addDefinition(
         HttpStreamFactory::class,
-        DI\get(HttpRequestFactory::class)
+        get(HttpRequestFactory::class)
     );
 };

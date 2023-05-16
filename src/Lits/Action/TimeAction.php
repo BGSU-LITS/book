@@ -8,6 +8,7 @@ use League\Period\Datepoint;
 use Lits\Action;
 use Lits\Config\BookConfig;
 use Lits\LibCal\Data\Space\Reserve\PayloadReserveSpaceData;
+use Lits\Meta\LocationMeta;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpInternalServerErrorException;
 use Slim\Exception\HttpNotFoundException;
@@ -23,58 +24,17 @@ final class TimeAction extends Action
      */
     public function action(): void
     {
-        if (!($this->settings['book'] instanceof BookConfig)) {
-            throw new HttpInternalServerErrorException($this->request);
-        }
-
-        if (!isset($this->data['date']) || !isset($this->data['time'])) {
-            throw new HttpBadRequestException($this->request);
-        }
-
         $context = [];
         $context['post'] = $this->request->getParsedBody();
 
         if (\is_array($context['post'])) {
-            try {
-                $data = PayloadReserveSpaceData::fromArray($context['post']);
-
-                if (\is_string($data->nickname)) {
-                    $data->nickname .= ' - ';
-                } else {
-                    $data->nickname = '';
-                }
-
-                $data->nickname .= $data->fname . ' ' . $data->lname;
-
-                $response = $this->client->space()
-                    ->reserve($data)
-                    ->send();
-
-                $this->redirect(
-                    $this->routeCollector->getRouteParser()
-                        ->urlFor('id', ['id' => $response->booking_id])
-                );
-            } catch (\Throwable $exception) {
-                throw new HttpInternalServerErrorException(
-                    $this->request,
-                    null,
-                    $exception
-                );
-            }
+            $this->postData($context['post']);
 
             return;
         }
 
-        $context['location'] = $this->findLocation();
-        $context['location']->loadItems(
-            $this->getItems($context['location']->id, ['seats' => true]),
-            $this->settings['book']->items
-        );
-
-        $context['datepoint'] = Datepoint::create(
-            $this->data['date'] . ' ' . $this->data['time']
-        );
-
+        $context['location'] = $this->loadLocation();
+        $context['datepoint'] = $this->loadDatepoint();
         $context['item'] = $this->findItem($context['location']);
         $context['item']->loadPeriod($context['datepoint']->day());
 
@@ -122,6 +82,72 @@ final class TimeAction extends Action
 
         try {
             $this->render($this->template(), $context);
+        } catch (\Throwable $exception) {
+            throw new HttpInternalServerErrorException(
+                $this->request,
+                null,
+                $exception
+            );
+        }
+    }
+
+    /** @throws HttpBadRequestException */
+    private function loadDatepoint(): Datepoint
+    {
+        if (!isset($this->data['date']) || !isset($this->data['time'])) {
+            throw new HttpBadRequestException($this->request);
+        }
+
+        return Datepoint::create(
+            $this->data['date'] . ' ' . $this->data['time']
+        );
+    }
+
+    /**
+     * @throws HttpBadRequestException
+     * @throws HttpInternalServerErrorException
+     * @throws HttpNotFoundException
+     */
+    private function loadLocation(): LocationMeta
+    {
+        if (!($this->settings['book'] instanceof BookConfig)) {
+            throw new HttpInternalServerErrorException($this->request);
+        }
+
+        $location = $this->findLocation();
+        $location->loadItems(
+            $this->getItems($location->id, ['seats' => true]),
+            $this->settings['book']->items
+        );
+
+        return $location;
+    }
+
+    /**
+     * @param mixed[] $post
+     * @throws HttpInternalServerErrorException
+     */
+    private function postData(array $post): void
+    {
+        try {
+            $data = PayloadReserveSpaceData::fromArray($post);
+
+            if (\is_string($data->nickname)) {
+                $data->nickname .= ' - ';
+            } else {
+                $data->nickname = '';
+            }
+
+            $data->nickname .= $data->fname . ' ' . $data->lname;
+
+            $response = $this->client->space()
+                ->reserve($data)
+                ->send();
+
+            $this->redirect(
+                $this->routeCollector->getRouteParser()
+                    ->urlFor('id', ['id' => $response->booking_id])
+            );
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,

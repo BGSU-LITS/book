@@ -48,16 +48,7 @@ final class LocationMeta extends Meta
                 $this->capacity = $item->capacity;
             }
 
-            if (\is_array($item->availability)) {
-                foreach ($item->availability as $availability) {
-                    if (
-                        \is_null($this->availability) ||
-                        $availability->from < $this->availability
-                    ) {
-                        $this->availability = $availability->from;
-                    }
-                }
-            }
+            $this->loadAvailability($item);
 
             $this->items[] = new ItemMeta($item, $configs);
         }
@@ -70,16 +61,7 @@ final class LocationMeta extends Meta
     public function loadCategories(array $categories, array $configs): void
     {
         foreach ($categories as $category) {
-            foreach ($this->items as $item) {
-                if ($item->data->groupId === $category->cid) {
-                    $this->categories[] = new CategoryMeta(
-                        $category,
-                        $configs
-                    );
-
-                    break;
-                }
-            }
+            $this->loadCategoriesMatches($category, $configs);
         }
     }
 
@@ -89,12 +71,50 @@ final class LocationMeta extends Meta
         $this->zones = [];
 
         foreach ($zones as $zone) {
-            foreach ($this->items as $item) {
-                if ($item->data->zoneId === $zone->id) {
-                    $this->zones[] = new ZoneMeta($zone);
+            $this->loadZonesMatches($zone);
+        }
+    }
 
-                    break;
-                }
+    private function loadAvailability(ItemSpaceData $item): void
+    {
+        if (!\is_array($item->availability)) {
+            return;
+        }
+
+        foreach ($item->availability as $availability) {
+            if (
+                \is_null($this->availability) ||
+                $availability->from < $this->availability
+            ) {
+                $this->availability = $availability->from;
+            }
+        }
+    }
+
+    /** @param MetaConfig[] $configs */
+    private function loadCategoriesMatches(
+        CategorySpaceData $category,
+        array $configs
+    ): void {
+        foreach ($this->items as $item) {
+            if ($item->data->groupId === $category->cid) {
+                $this->categories[] = new CategoryMeta(
+                    $category,
+                    $configs
+                );
+
+                break;
+            }
+        }
+    }
+
+    private function loadZonesMatches(ZoneSpaceData $zone): void
+    {
+        foreach ($this->items as $item) {
+            if ($item->data->zoneId === $zone->id) {
+                $this->zones[] = new ZoneMeta($zone);
+
+                break;
             }
         }
     }

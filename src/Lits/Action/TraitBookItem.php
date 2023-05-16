@@ -8,6 +8,7 @@ use League\Period\Duration;
 use League\Period\Period;
 use Lits\Config\BookConfig;
 use Lits\LibCal\Data\Space\AvailabilitySpaceData;
+use Lits\LibCal\Data\Space\CategorySpaceData;
 use Lits\LibCal\Data\Space\ItemSpaceData;
 use Lits\LibCal\Exception\NotFoundException;
 use Lits\Meta\CategoryMeta;
@@ -52,25 +53,7 @@ trait TraitBookItem
         }
 
         if (\is_int($item->data->groupId)) {
-            try {
-                $result = $this->client->space()
-                    ->category($item->data->groupId)
-                    ->cache()
-                    ->send();
-            } catch (NotFoundException $exception) {
-                throw new HttpNotFoundException(
-                    $this->request,
-                    null,
-                    $exception
-                );
-            } catch (\Throwable $exception) {
-                throw new HttpInternalServerErrorException(
-                    $this->request,
-                    null,
-                    $exception
-                );
-            }
-
+            $result = $this->findCategorySpaceData($item->data->groupId);
             $category = \reset($result);
 
             if ($category !== false) {
@@ -82,6 +65,33 @@ trait TraitBookItem
         }
 
         throw new HttpNotFoundException($this->request);
+    }
+
+    /**
+     * @return CategorySpaceData[]
+     * @throws HttpInternalServerErrorException
+     * @throws HttpNotFoundException
+     */
+    private function findCategorySpaceData(int $groupId): array
+    {
+        try {
+            return $this->client->space()
+                ->category($groupId)
+                ->cache()
+                ->send();
+        } catch (NotFoundException $exception) {
+            throw new HttpNotFoundException(
+                $this->request,
+                null,
+                $exception
+            );
+        } catch (\Throwable $exception) {
+            throw new HttpInternalServerErrorException(
+                $this->request,
+                null,
+                $exception
+            );
+        }
     }
 
     /**
@@ -99,6 +109,33 @@ trait TraitBookItem
             return [];
         }
 
+        $result = $this->getAvailabilityItemSpaceData(
+            $item_id,
+            $from,
+            $to,
+            $cache
+        );
+
+        $item = \reset($result);
+
+        if ($item instanceof ItemSpaceData && !\is_null($item->availability)) {
+            return $item->availability;
+        }
+
+        return [];
+    }
+
+    /**
+     * @return ItemSpaceData[]
+     * @throws HttpInternalServerErrorException
+     * @throws HttpNotFoundException
+     */
+    private function getAvailabilityItemSpaceData(
+        int $item_id,
+        string $from,
+        string $to,
+        bool $cache
+    ): array {
         try {
             $client = $this->client->space()
                 ->item($item_id)
@@ -108,7 +145,7 @@ trait TraitBookItem
                 $client->cache();
             }
 
-            $result = $client->send();
+            return $client->send();
         } catch (NotFoundException $exception) {
             throw new HttpNotFoundException(
                 $this->request,
@@ -122,14 +159,6 @@ trait TraitBookItem
                 $exception
             );
         }
-
-        $item = \reset($result);
-
-        if ($item instanceof ItemSpaceData && !\is_null($item->availability)) {
-            return $item->availability;
-        }
-
-        return [];
     }
 
     /**

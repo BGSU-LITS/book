@@ -6,8 +6,10 @@ namespace Lits\Action;
 
 use Lits\Config\BookConfig;
 use Lits\LibCal\Client;
+use Lits\LibCal\Data\Space\AvailabilitySpaceData;
 use Lits\LibCal\Data\Space\CategorySpaceData;
 use Lits\LibCal\Data\Space\ItemSpaceData;
+use Lits\LibCal\Data\Space\LocationSpaceData;
 use Lits\LibCal\Data\Space\ZoneSpaceData;
 use Lits\LibCal\Exception\ClientException;
 use Lits\LibCal\Exception\NotFoundException;
@@ -35,14 +37,6 @@ trait TraitBookLocation
      */
     private function findLocation(): LocationMeta
     {
-        if (!($this->settings['book'] instanceof BookConfig)) {
-            throw new HttpInternalServerErrorException($this->request);
-        }
-
-        if (!isset($this->data['location'])) {
-            throw new HttpBadRequestException($this->request);
-        }
-
         try {
             $locations = $this->client->space()
                 ->locations()
@@ -55,6 +49,25 @@ trait TraitBookLocation
                 null,
                 $exception
             );
+        }
+
+        return $this->findLocationMeta($locations);
+    }
+
+    /**
+     * @param LocationSpaceData[] $locations
+     * @throws HttpBadRequestException
+     * @throws HttpInternalServerErrorException
+     * @throws HttpNotFoundException
+     */
+    private function findLocationMeta(array $locations): LocationMeta
+    {
+        if (!($this->settings['book'] instanceof BookConfig)) {
+            throw new HttpInternalServerErrorException($this->request);
+        }
+
+        if (!isset($this->data['location'])) {
+            throw new HttpBadRequestException($this->request);
         }
 
         foreach ($locations as $location) {
@@ -79,20 +92,10 @@ trait TraitBookLocation
      */
     private function getItems(int $location_id, array $query = []): array
     {
-        $date = 'next';
-
-        if (
-            isset($query['date']) &&
-            \is_string($query['date']) &&
-            $query['date'] !== ''
-        ) {
-            $date = \str_replace(' to ', ',', $query['date']);
-        }
-
         try {
             $items = $this->client->space()
                 ->items($location_id)
-                ->setAvailability($date)
+                ->setAvailability(self::queryDate($query))
                 ->setAccessibleOnly(isset($query['accessible']))
                 ->setPowered(isset($query['powered']))
                 ->setBookable(!isset($query['seats']))
@@ -114,11 +117,7 @@ trait TraitBookLocation
             );
         }
 
-        if ($query !== []) {
-            $items = self::filterItems($items, $query);
-        }
-
-        return $items;
+        return self::filterItems($items, $query);
     }
 
     /**
@@ -183,6 +182,34 @@ trait TraitBookLocation
         }
     }
 
+    /** @param mixed[] $query */
+    private static function queryDate(array $query): string
+    {
+        if (
+            isset($query['date']) &&
+            \is_string($query['date']) &&
+            $query['date'] !== ''
+        ) {
+            return \str_replace(' to ', ',', $query['date']);
+        }
+
+        return 'next';
+    }
+
+    /** @param mixed[] $query */
+    private static function queryTime(array $query): string
+    {
+        if (
+            isset($query['time']) &&
+            \is_string($query['time']) &&
+            $query['time'] !== ''
+        ) {
+            return $query['time'];
+        }
+
+        return '';
+    }
+
     /**
      * @param ItemSpaceData[] $items
      * @param mixed[] $query
@@ -190,50 +217,46 @@ trait TraitBookLocation
      */
     private static function filterItems(array $items, array $query): array
     {
+        $items = \array_filter(
+            $items,
+            fn ($item) =>
+                !isset($query['capacity']) ||
+                $item->capacity > (int) $query['capacity']
+        );
+
         $result = [];
 
         foreach ($items as $item) {
-            if (
-                isset($query['capacity']) &&
-                $item->capacity < (int) $query['capacity']
-            ) {
-                continue;
+            $item->availability = self::filterAvailability(
+                $item->availability,
+                self::queryTime($query)
+            );
+
+            if ($item->availability !== []) {
+                $result[] = $item;
             }
-
-            if (
-                isset($query['date']) &&
-                \is_string($query['date']) &&
-                $query['date'] !== ''
-            ) {
-                if (\is_null($item->availability)) {
-                    continue;
-                }
-
-                if (
-                    isset($query['time']) &&
-                    \is_string($query['time']) &&
-                    $query['time'] !== ''
-                ) {
-                    foreach ($item->availability as $key => $available) {
-                        if (
-                            $query['time'] < $available->from->format('H:i') ||
-                            $query['time'] >= $available->to->format('H:i')
-                        ) {
-                            unset($item->availability[$key]);
-
-                            continue;
-                        }
-                    }
-                }
-
-                if ($item->availability === []) {
-                    continue;
-                }
-            }
-
-            $result[] = $item;
         }
 
         return $result;
+    }
+
+    /**
+     * @param AvailabilitySpaceData[]|null $availability
+     * @return AvailabilitySpaceData[]
+     */
+    private static function filterAvailability(
+        ?array $availability,
+        string $time
+    ): array {
+        if (\is_null($availability) || $time === '') {
+            return (array) $availability;
+        }
+
+        return \array_filter(
+            $availability,
+            fn ($available) =>
+                $time >= $available->from->format('H:i') &&
+                $time < $available->to->format('H:i')
+        );
     }
 }
