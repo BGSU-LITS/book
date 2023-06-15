@@ -224,12 +224,18 @@ trait TraitBookLocation
                 $item->capacity > (int) $query['capacity']
         );
 
+        $time = self::queryTime($query);
+
+        if ($time === '') {
+            return $items;
+        }
+
         $result = [];
 
         foreach ($items as $item) {
             $item->availability = self::filterAvailability(
                 $item->availability,
-                self::queryTime($query)
+                $time
             );
 
             if ($item->availability !== []) {
