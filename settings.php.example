@@ -69,6 +69,18 @@ return function (Framework $framework): void {
 
     assert($settings['book'] instanceof BookConfig);
 
+    // Enable narrowing spaces in a location by date and time.
+    // $settings['book']->narrowDatetime = true;
+
+    // Enable narrowing spaces in a location by minimum capacity.
+    // $settings['book']->narrowCapacity = true;
+
+    // Enable narrowing spaces in a location by if they are accessible.
+    // $settings['book']->narrowAccessible = true;
+
+    // Enable narrowing spaces in a location by if they have power available.
+    // $settings['book']->narrowPower = true;
+
     // Create a configuration for a given ID number (ex. 0).
     // $meta = new MetaConfig(0);
 

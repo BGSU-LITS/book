@@ -8,6 +8,11 @@ use Lits\Config;
 
 final class BookConfig extends Config
 {
+    public bool $narrowDatetime = true;
+    public bool $narrowCapacity = true;
+    public bool $narrowAccessible = true;
+    public bool $narrowPower = true;
+
     /** @var MetaConfig[] $locations */
     public array $locations = [];
 

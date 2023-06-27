@@ -119,9 +119,11 @@
 {{ parent() }}
 {{ location.config.description|raw }}
 <div class="bgsu_common_sidebar">
+    {%~ if settings.book.narrowDatetime or settings.book.narrowCapacity or settings.book.narrowAccessible or settings.book.narrowPower %}
     <div class="bgsu_common_sidebar_left">
         <h2 class="bgsu_common_sidebar_title bgsu_common__title">Narrow Options</h2>
         <form method="get" action="{{ url_for('location', {location: location.slug}) }}" class="bgsu_common_form">
+            {%~ if settings.book.narrowDatetime %}
             <div class="bgsu_common_form_group">
                 <label for="date">Date:</label>
                 <div>
@@ -136,7 +138,8 @@
                     <a id="time-clear" class="bgsu_common_icon bgsu_common_icon__remove bgsu_common_icon__right" href="#" title="Clear Time"></a>
                 </div>
             </div>
-            {%~ if location.capacity > 1 %}
+            {%~ endif %}
+            {%~ if settings.book.narrowCapacity and location.capacity > 1 %}
             <div class="bgsu_common_form_group">
                 <label for="capacity">Minimum Capacity:</label>
                 <div>
@@ -145,20 +148,27 @@
                 </div>
             </div>
             {%~ endif %}
+            {%~ if settings.book.narrowAccessible or settings.book.narrowPower %}
             <div class="bgsu_common_form_group">
                 <div>Limit to:</div>
+                {%~ if settings.book.narrowAccessible %}
                 <div>
                     <input type="checkbox" name="accessible" id="accessible"{% if query.accessible %} checked{% endif %}>
                     <label for="accessible">Accessible Space</label><br>
                 </div>
+                {%~ endif %}
+                {%~ if settings.book.narrowPower %}
                 <div>
                     <input type="checkbox" name="powered" id="powered"{% if query.powered %} checked{% endif %}>
                     <label for="powered">Power Available</label>
                 </div>
+                {%~ endif %}
             </div>
+            {%~ endif %}
             <button type="submit" class="bgsu_common_button bgsu_common_button__small bgsu_common_button__primary">Update</button>
         </form>
     </div>
+    {%~ endif %}
     <div>
         <div class="bgsu_common_records">
             {%~ if location.items %}
