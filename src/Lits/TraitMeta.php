@@ -8,6 +8,7 @@ trait TraitMeta
 {
     public ?string $description = null;
     public ?string $emailDomain = null;
+    public bool $grouped = true;
     public ?\DateInterval $lengthDefault = null;
     public ?\DateInterval $lengthMinimum = null;
     public ?\DateInterval $lengthMaximum = null;

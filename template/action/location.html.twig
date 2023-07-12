@@ -4,7 +4,7 @@
 {% macro outputItem(item, location, heading, query) %}
 {% set first = item.data.availability|first.from %}
             <a class="bgsu_common_records_item" href="
-                {{- url_for('item', {'location': location.slug, 'item': item.slug}) -}}
+                {{- url_for('item', {'location': location.slug, 'item': item.slug, 'date': first|date('Y-m-d')}) -}}
                 {%- if query.date -%}
                     ?date={{ first|date("Y-m-d") -}}
                         {%- if query.time -%}
@@ -172,7 +172,7 @@
     <div>
         <div class="bgsu_common_records">
             {%~ if location.items %}
-                {%- if location.zones|length > 1 %}
+                {%- if location.config.grouped and location.zones|length > 1 %}
                     {%- for zone in location.zones %}
             <h2>{{ zone.data.name }}</h2>
                         {%~ for item in location.items %}
@@ -181,7 +181,7 @@
                             {%- endif %}
                         {%- endfor %}
                     {%- endfor %}
-                {%- elseif location.categories|length > 1 %}
+                {%- elseif location.config.grouped and location.categories|length > 1 %}
                     {%- for category in location.categories %}
             <h2>{{ category.data.name }}</h2>
                         {%~ for item in location.items %}
