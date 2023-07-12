@@ -15,6 +15,7 @@ use Lits\LibCal\Exception\ClientException;
 use Lits\LibCal\Exception\NotFoundException;
 use Lits\Meta\LocationMeta;
 use Lits\Service\ActionService;
+use Safe\DateTimeImmutable;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpInternalServerErrorException;
 use Slim\Exception\HttpNotFoundException;
@@ -193,7 +194,12 @@ trait TraitBookLocation
             return \str_replace(' to ', ',', $query['date']);
         }
 
-        return 'next';
+        try {
+            return (new DateTimeImmutable())->format('Y-m-d') . ',' .
+                (new DateTimeImmutable('+15 weeks'))->format('Y-m-d');
+        } catch (\Throwable $exception) {
+            return 'next';
+        }
     }
 
     /** @param mixed[] $query */
@@ -224,18 +230,12 @@ trait TraitBookLocation
                 $item->capacity > (int) $query['capacity']
         );
 
-        $time = self::queryTime($query);
-
-        if ($time === '') {
-            return $items;
-        }
-
         $result = [];
 
         foreach ($items as $item) {
             $item->availability = self::filterAvailability(
                 $item->availability,
-                $time
+                self::queryTime($query)
             );
 
             if ($item->availability !== []) {
