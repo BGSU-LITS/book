@@ -13,7 +13,7 @@
         "ext-date": "*",
         "ext-pcre": "*",
         "bgsu-lits/framework": "^1.12",
-        "bgsu-lits/libcal": "^0.6",
+        "bgsu-lits/libcal": "^0.6.1",
         "cocur/slugify": "^4.0",
         "desarrolla2/cache": "^3.0",
         "guzzlehttp/guzzle": "^7.3",

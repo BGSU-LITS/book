@@ -194,12 +194,7 @@ trait TraitBookLocation
             return \str_replace(' to ', ',', $query['date']);
         }
 
-        try {
-            return (new DateTimeImmutable())->format('Y-m-d') . ',' .
-                (new DateTimeImmutable('+15 weeks'))->format('Y-m-d');
-        } catch (\Throwable $exception) {
-            return 'next';
-        }
+        return 'next_only';
     }
 
     /** @param mixed[] $query */
