@@ -32,24 +32,24 @@ final class LocationAction extends Action
         // Load all items for maximum capacity and nearest availability.
         $context['location']->loadItems(
             $this->getItems($context['location']->id),
-            $this->settings['book']->items
+            $this->settings['book']->items,
         );
 
         // Reload items if there is a query to narrow list.
         if ($context['query'] !== []) {
             $context['location']->loadItems(
                 $this->getItems($context['location']->id, $context['query']),
-                $this->settings['book']->items
+                $this->settings['book']->items,
             );
         }
 
         $context['location']->loadCategories(
             $this->getCategories($context['location']->id),
-            $this->settings['book']->categories
+            $this->settings['book']->categories,
         );
 
         $context['location']->loadZones(
-            $this->getZones($context['location']->id)
+            $this->getZones($context['location']->id),
         );
 
         try {
@@ -58,7 +58,7 @@ final class LocationAction extends Action
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }

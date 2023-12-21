@@ -1,10 +1,10 @@
-{% set title = datepoint|date('l, F j, Y') ~ ' at ' ~ datepoint|date('g:ia') %}
+{% set title = date|date('l, F j, Y') ~ ' at ' ~ date|date('g:ia') %}
 {% extends 'page.html.twig' %}
 
 {% block breadcrumb %}
 <nav aria-label="breadcrumb">
     <ol class="bgsu_common_list_breadcrumb">
-        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li><a href="{{ url_for('location', {location: location.slug}) }}">{{ location.data.name }}</a></li><li><a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}">{{ item.data.name }}</a></li><li aria-current="page">{{ title }}</li>
+        <li><a href="{{ url_for('index') }}">{{ settings.template.site }}</a></li><li><a href="{{ url_for('location', {location: location.slug}) }}">{{ location.data.name }}</a></li><li><a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ date|date('Y-m-d') }}">{{ item.data.name }}</a></li><li aria-current="page">{{ title }}</li>
     </ol>
 </nav>
 {% endblock %}
@@ -37,7 +37,7 @@
 </div>
 
 {% if options %}
-<form method="post" action="{{ url_for('time', {location: location.slug, item: item.slug, date: datepoint|date('Y-m-d'), time: datepoint|date('H:i')}) }}">
+<form method="post" action="{{ url_for('time', {location: location.slug, item: item.slug, date: date|date('Y-m-d'), time: date|date('H:i')}) }}">
     <input type="hidden" name="start" value="{{ post.start }}">
     <input type="hidden" name="bookings[0][id]" value="{{ post.bookings[0]['id'] }}">
     <p>
@@ -87,6 +87,6 @@
 <div class="bgsu_common_alert bgsu_common_alert__failure">
     This date and time is not available.
 </div>
-<a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ datepoint|date('Y-m-d') }}" class="bgsu_common_button">Choose a different time</a>
+<a href="{{ url_for('item', {location: location.slug, item: item.slug}) }}?date={{ date|date('Y-m-d') }}" class="bgsu_common_button">Choose a different time</a>
 {% endif %}
 {% endblock %}

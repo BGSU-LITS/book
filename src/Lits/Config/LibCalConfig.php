@@ -20,19 +20,19 @@ final class LibCalConfig extends Config
     {
         if ($this->host === '') {
             throw new InvalidConfigException(
-                'The host must be specified'
+                'The host must be specified',
             );
         }
 
         if ($this->clientId === '') {
             throw new InvalidConfigException(
-                'The clientId must be specified'
+                'The clientId must be specified',
             );
         }
 
         if ($this->clientSecret === '') {
             throw new InvalidConfigException(
-                'The clientSecret must be specified'
+                'The clientSecret must be specified',
             );
         }
     }

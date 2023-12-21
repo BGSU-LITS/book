@@ -9,12 +9,9 @@ use Lits\Meta;
 
 final class ZoneMeta extends Meta
 {
-    public ZoneSpaceData $data;
-
-    public function __construct(ZoneSpaceData $data)
+    public function __construct(public ZoneSpaceData $data)
     {
         $this->id = $data->id;
-        $this->data = $data;
         $this->setSlug($data->name);
     }
 }

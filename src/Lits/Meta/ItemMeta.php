@@ -4,33 +4,30 @@ declare(strict_types=1);
 
 namespace Lits\Meta;
 
-use League\Period\Datepoint;
-use League\Period\Exception as PeriodException;
 use League\Period\Period;
 use Lits\Config\MetaConfig;
 use Lits\LibCal\Data\Space\AvailabilitySpaceData;
 use Lits\LibCal\Data\Space\ItemSpaceData;
 use Lits\Meta;
 use Lits\TraitMeta;
+use Safe\DateTimeImmutable;
 
 final class ItemMeta extends Meta
 {
     use TraitMeta;
 
-    public ItemSpaceData $data;
     public \DateInterval $lengthDivisor;
 
     /** @var array<string,array<string,bool>> */
     public array $times = [];
 
     /**
-     * @param MetaConfig[] $configs
+     * @param array<MetaConfig> $configs
      * @throws \Exception Length divisor could not be created.
      */
-    public function __construct(ItemSpaceData $data, array $configs)
+    public function __construct(public ItemSpaceData $data, array $configs)
     {
         $this->id = $data->id;
-        $this->data = $data;
         $this->lengthDivisor = new \DateInterval('P15M');
         $this->setSlug($data->name);
         $this->setConfig($configs);
@@ -54,13 +51,12 @@ final class ItemMeta extends Meta
     {
         $this->times = [];
 
-        /** @var \DateTimeImmutable $day */
-        foreach ($period->dateRangeForward('1 day') as $day) {
+        foreach ($period->rangeForward('1 day') as $day) {
             $this->times[$day->format('Y-m-d')] = [];
         }
     }
 
-    /** @param AvailabilitySpaceData[] $availability */
+    /** @param array<AvailabilitySpaceData> $availability */
     public function loadAvailability(array $availability): void
     {
         $first = \reset($availability);
@@ -72,37 +68,59 @@ final class ItemMeta extends Meta
         $this->loadAvailabilityFirst($first, $availability);
     }
 
+    public function lengthDefault(): \DateInterval
+    {
+        if ($this->lengthDefault instanceof \DateInterval) {
+            return $this->lengthDefault;
+        }
+
+        return $this->lengthDivisor;
+    }
+
+    public function lengthMaximum(): \DateInterval
+    {
+        if ($this->lengthMaximum instanceof \DateInterval) {
+            return $this->lengthMaximum;
+        }
+
+        return $this->lengthDivisor;
+    }
+
+    public function lengthMinimum(): \DateInterval
+    {
+        if ($this->lengthMinimum instanceof \DateInterval) {
+            return $this->lengthMinimum;
+        }
+
+        return $this->lengthDivisor;
+    }
+
+    /** @throws \Exception */
     public function slots(): int
     {
-        if (\is_null($this->lengthDefault)) {
+        if (!$this->lengthDefault instanceof \DateInterval) {
             return 1;
         }
 
-        try {
-            $period = new Period(
-                new Datepoint(),
-                (new Datepoint())->add($this->lengthDefault)
-            );
-        } catch (PeriodException $exception) {
-            return 1;
-        }
-
-        return \iterator_count(
-            $period->dateRangeForward($this->lengthDivisor)
+        $period = Period::fromDate(
+            new DateTimeImmutable(),
+            (new DateTimeImmutable())->add($this->lengthDefault),
         );
+
+        return \iterator_count($period->rangeForward($this->lengthDivisor));
     }
 
     private function addConfigLength(MetaConfig $config): void
     {
-        if (!\is_null($config->lengthDefault)) {
+        if ($config->lengthDefault instanceof \DateInterval) {
             $this->lengthDefault = $config->lengthDefault;
         }
 
-        if (!\is_null($config->lengthDefault)) {
+        if ($config->lengthMinimum instanceof \DateInterval) {
             $this->lengthMinimum = $config->lengthMinimum;
         }
 
-        if (!\is_null($config->lengthDefault)) {
+        if ($config->lengthMaximum instanceof \DateInterval) {
             $this->lengthMaximum = $config->lengthMaximum;
         }
     }
@@ -118,10 +136,10 @@ final class ItemMeta extends Meta
         }
     }
 
-    /** @param AvailabilitySpaceData[] $availability */
+    /** @param array<AvailabilitySpaceData> $availability */
     private function loadAvailabilityFirst(
         AvailabilitySpaceData $first,
-        array $availability
+        array $availability,
     ): void {
         $start = $first->from;
         $end = $first->to;
@@ -137,9 +155,7 @@ final class ItemMeta extends Meta
                 $start = $datetime;
             }
 
-            $datetime = (clone $datetime)->add(
-                $this->lengthMinimum ?? $this->lengthDivisor
-            );
+            $datetime = (clone $datetime)->add($this->lengthMinimum());
 
             if ($end < $datetime) {
                 $end = $datetime;
@@ -153,7 +169,7 @@ final class ItemMeta extends Meta
     private function loadAvailabilityTimes(
         \DateTime $start,
         \DateTime $end,
-        array $set
+        array $set,
     ): void {
         foreach (\array_keys($this->times) as $date) {
             $start = $start->modify($date);
@@ -163,11 +179,10 @@ final class ItemMeta extends Meta
                 $end = $end->modify('+1 day');
             }
 
-            $period = new Period($start, $end);
-            $datePeriod = $period->dateRangeForward($this->lengthDivisor);
+            $period = Period::fromDate($start, $end)
+                ->rangeForward($this->lengthDivisor);
 
-            /** @var \DateTimeImmutable $datetime */
-            foreach ($datePeriod as $datetime) {
+            foreach ($period as $datetime) {
                 $time = $datetime->format('H:i');
 
                 $this->times[$date][$time] =

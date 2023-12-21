@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Lits\Action;
 
-use League\Period\Datepoint;
+use League\Period\DatePoint;
 use League\Period\Period;
 use Lits\Action;
 use Lits\Config\BookConfig;
 use Lits\Meta\ItemMeta;
+use Safe\DateTimeImmutable;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpInternalServerErrorException;
 use Slim\Exception\HttpNotFoundException;
@@ -34,7 +35,7 @@ final class ItemAction extends Action
 
         $context['location']->loadItems(
             $this->getItems($context['location']->id, ['seats' => true]),
-            $this->settings['book']->items
+            $this->settings['book']->items,
         );
 
         $context['item'] = $this->findItem($context['location']);
@@ -44,7 +45,7 @@ final class ItemAction extends Action
             $context['item']->id,
             \array_key_first($context['item']->times),
             \array_key_last($context['item']->times),
-            true
+            true,
         );
 
         $this->setDivisor($context['item'], $availability);
@@ -57,15 +58,15 @@ final class ItemAction extends Action
             }
         }
 
-        $context['slots'] = $context['item']->slots();
-
         try {
+            $context['slots'] = $context['item']->slots();
+
             $this->render($this->template(), $context);
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }
@@ -84,15 +85,15 @@ final class ItemAction extends Action
             // ISO weeks start on Mondays, so move the requested day one day
             // forward to calculate the correct week, and then move the range
             // back one day so it starts on a Sunday.
-            return Datepoint::create($date)
-                ->add(new \DateInterval('P1D'))
-                ->isoWeek()
-                ->move('-1 day');
+            $datetime = (new DateTimeImmutable($date))
+                ->add(new \DateInterval('P1D'));
+
+            return DatePoint::fromDate($datetime)->isoWeek()->move('-1 day');
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }

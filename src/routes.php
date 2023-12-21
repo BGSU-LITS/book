@@ -33,7 +33,7 @@ return function (Framework $framework): void {
         ->map(
             ['GET', 'POST'],
             '/{location}/{item}/' . $date . '/' . $time,
-            TimeAction::class
+            TimeAction::class,
         )
         ->setName('time');
 };

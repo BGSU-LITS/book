@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Lits\Action;
 
-use League\Period\Datepoint;
+use League\Period\DatePoint;
 use Lits\Action;
 use Lits\Config\BookConfig;
 use Lits\LibCal\Data\Space\Reserve\PayloadReserveSpaceData;
 use Lits\Meta\LocationMeta;
+use Safe\DateTimeImmutable;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpInternalServerErrorException;
 use Slim\Exception\HttpNotFoundException;
@@ -34,14 +35,16 @@ final class TimeAction extends Action
         }
 
         $context['location'] = $this->loadLocation();
-        $context['datepoint'] = $this->loadDatepoint();
+        $context['date'] = $this->loadDate();
         $context['item'] = $this->findItem($context['location']);
-        $context['item']->loadPeriod($context['datepoint']->day());
+        $context['item']->loadPeriod(
+            DatePoint::fromDate($context['date'])->day(),
+        );
 
         $availability = $this->getAvailability(
             $context['item']->id,
             \array_key_first($context['item']->times),
-            \array_key_last($context['item']->times)
+            \array_key_last($context['item']->times),
         );
 
         $this->setDivisor($context['item'], $availability);
@@ -57,50 +60,58 @@ final class TimeAction extends Action
         $context['form'] = $this->findForm(
             $context['location'],
             $context['category'],
-            $context['item']
+            $context['item'],
         );
 
         $context['options'] = $this->findOptions(
             $context['item'],
-            $context['datepoint']
+            $context['date'],
         );
 
         $context['email'] = $this->findEmail($context['item']);
 
-        $to = $context['datepoint'];
-        $to = $to->add(
-            $context['item']->lengthDefault ?? $context['item']->lengthDivisor
-        );
-
-        $context['post'] = [
-            'start' => $context['datepoint']->format('c'),
-            'bookings' => [[
-                'id' => $context['item']->id,
-                'to' => $to->format('c'),
-            ]],
-        ];
-
         try {
+            $context['post'] = [
+                'start' => $context['date']->format('c'),
+                'bookings' => [[
+                    'id' => $context['item']->id,
+                    'to' => $context['date']
+                        ->add($context['item']->lengthDefault())
+                        ->format('c'),
+                ]],
+            ];
+
             $this->render($this->template(), $context);
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }
 
-    /** @throws HttpBadRequestException */
-    private function loadDatepoint(): Datepoint
+    /**
+     * @throws HttpBadRequestException
+     * @throws HttpInternalServerErrorException
+     */
+    private function loadDate(): DateTimeImmutable
     {
         if (!isset($this->data['date']) || !isset($this->data['time'])) {
             throw new HttpBadRequestException($this->request);
         }
 
-        return Datepoint::create(
-            $this->data['date'] . ' ' . $this->data['time']
-        );
+        try {
+            return new DateTimeImmutable(
+                $this->data['date'] . ' ' . $this->data['time'],
+            );
+        } catch (\Throwable $exception) {
+            throw new HttpInternalServerErrorException(
+                $this->request,
+                null,
+                $exception,
+            );
+        }
     }
 
     /**
@@ -117,14 +128,14 @@ final class TimeAction extends Action
         $location = $this->findLocation();
         $location->loadItems(
             $this->getItems($location->id, ['seats' => true]),
-            $this->settings['book']->items
+            $this->settings['book']->items,
         );
 
         return $location;
     }
 
     /**
-     * @param mixed[] $post
+     * @param array<mixed> $post
      * @throws HttpInternalServerErrorException
      */
     private function postData(array $post): void
@@ -146,13 +157,13 @@ final class TimeAction extends Action
 
             $this->redirect(
                 $this->routeCollector->getRouteParser()
-                    ->urlFor('id', ['id' => $response->booking_id])
+                    ->urlFor('id', ['id' => $response->booking_id]),
             );
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }

@@ -38,11 +38,11 @@ final class IdAction extends Action
         $slugify = new Slugify();
 
         $this->data['location'] = $slugify->slugify(
-            $context['booking']->location_name
+            $context['booking']->location_name,
         );
 
         $this->data['item'] = $slugify->slugify(
-            $context['booking']->item_name
+            $context['booking']->item_name,
         );
 
         $post = $this->request->getParsedBody();
@@ -51,7 +51,7 @@ final class IdAction extends Action
             $this->cancelBooking(
                 $this->data['id'],
                 $this->data['location'],
-                $this->data['item']
+                $this->data['item'],
             );
 
             return;
@@ -60,12 +60,12 @@ final class IdAction extends Action
         $context['location'] = $this->findLocation();
         $context['location']->loadItems(
             $this->getItems($context['location']->id),
-            $this->settings['book']->items
+            $this->settings['book']->items,
         );
 
         $context['item'] = $this->findItem($context['location']);
         $context['time'] = self::hoursAndMinutes(
-            $context['booking']->toDate->diff($context['booking']->fromDate)
+            $context['booking']->toDate->diff($context['booking']->fromDate),
         );
 
         try {
@@ -74,7 +74,7 @@ final class IdAction extends Action
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }
@@ -93,13 +93,13 @@ final class IdAction extends Action
             throw new HttpNotFoundException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
 
@@ -116,7 +116,7 @@ final class IdAction extends Action
     private function cancelBooking(
         string $id,
         string $location,
-        string $item
+        string $item,
     ): void {
         try {
             $result = $this->client->space()
@@ -127,7 +127,7 @@ final class IdAction extends Action
                 $this->routeCollector->getRouteParser()->urlFor('item', [
                     'location' => $location,
                     'item' => $item,
-                ])
+                ]),
             );
 
             $response = \reset($result);
@@ -135,7 +135,7 @@ final class IdAction extends Action
             if ($response === false || !$response->cancelled) {
                 $this->message(
                     'failure',
-                    'The booking could not be cancelled.'
+                    'The booking could not be cancelled.',
                 );
 
                 return;
@@ -143,13 +143,13 @@ final class IdAction extends Action
 
             $this->message(
                 'success',
-                'The previous booking has been cancelled.'
+                'The previous booking has been cancelled.',
             );
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }

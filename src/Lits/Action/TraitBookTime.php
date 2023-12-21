@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Lits\Action;
 
-use League\Period\Datepoint;
 use Lits\Config\BookConfig;
 use Lits\LibCal\Data\Space\FormSpaceData;
 use Lits\LibCal\Data\Space\QuestionSpaceData;
 use Lits\Meta\CategoryMeta;
 use Lits\Meta\ItemMeta;
 use Lits\Meta\LocationMeta;
+use Safe\DateTimeImmutable;
 use Slim\Exception\HttpInternalServerErrorException;
 
 use function Safe\preg_split;
@@ -23,7 +23,7 @@ trait TraitBookTime
     private function findForm(
         LocationMeta $location,
         CategoryMeta $category,
-        ItemMeta $item
+        ItemMeta $item,
     ): FormSpaceData {
         $formid = $item->data->formid ?? 0;
 
@@ -84,25 +84,36 @@ trait TraitBookTime
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }
 
     /**
-     * @return string[]
+     * @return array<string>
      * @throws HttpInternalServerErrorException
      */
-    private function findOptions(ItemMeta $item, Datepoint $datepoint): array
-    {
+    private function findOptions(
+        ItemMeta $item,
+        DateTimeImmutable $datetime,
+    ): array {
         $options = [];
 
-        $maximum = $datepoint
-            ->add($item->lengthMaximum ?? $item->lengthDivisor)
-            ->sub($item->lengthMinimum ?? $item->lengthDivisor);
+        try {
+            $maximum = $datetime
+                ->add($item->lengthMaximum())
+                ->sub($item->lengthMinimum());
 
-        $date = $datepoint->format('Y-m-d');
-        $current = clone $datepoint;
+            $date = $datetime->format('Y-m-d');
+        } catch (\Throwable $exception) {
+            throw new HttpInternalServerErrorException(
+                $this->request,
+                null,
+                $exception,
+            );
+        }
+
+        $current = $datetime;
 
         while ($current <= $maximum) {
             $time = $current->format('H:i');
@@ -114,9 +125,9 @@ trait TraitBookTime
                 break;
             }
 
-            $end = $current->add($item->lengthMinimum ?? $item->lengthDivisor);
+            $end = $current->add($item->lengthMinimum());
             $options[$end->format('c')] = self::hoursAndMinutes(
-                $end->diff($datepoint)
+                $end->diff($datetime),
             );
 
             $current = $current->add($item->lengthDivisor);
@@ -136,7 +147,7 @@ trait TraitBookTime
         }
 
         try {
-            /** @var string[] */
+            /** @psalm-var array<string> $domains */
             $domains = preg_split('/,\s*/', \preg_quote($item->emailDomain));
 
             return [
@@ -147,7 +158,7 @@ trait TraitBookTime
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }
@@ -155,7 +166,7 @@ trait TraitBookTime
     /** @throws HttpInternalServerErrorException */
     private function modifyForm(
         FormSpaceData $form,
-        ItemMeta $item
+        ItemMeta $item,
     ): FormSpaceData {
         if (!($this->settings['book'] instanceof BookConfig)) {
             throw new HttpInternalServerErrorException($this->request);
@@ -177,7 +188,7 @@ trait TraitBookTime
     /** @throws HttpInternalServerErrorException */
     private function modifyFormNickname(
         FormSpaceData $form,
-        ItemMeta $item
+        ItemMeta $item,
     ): FormSpaceData {
         try {
             $nickname = QuestionSpaceData::fromArray([
@@ -189,7 +200,7 @@ trait TraitBookTime
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
 

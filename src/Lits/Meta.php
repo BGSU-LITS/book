@@ -20,7 +20,7 @@ abstract class Meta
         }
     }
 
-    /** @param MetaConfig[] $configs */
+    /** @param array<MetaConfig> $configs */
     public function setConfig(array $configs): void
     {
         foreach ($configs as $config) {

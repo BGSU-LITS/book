@@ -26,7 +26,7 @@ return function (Framework $framework): void {
             HttpClient $client,
             HttpRequestFactory $requestFactory,
             HttpStreamFactory $streamFactory,
-            Cache $cache
+            Cache $cache,
         ): Client {
             assert($settings['libcal'] instanceof LibCalConfig);
 
@@ -39,7 +39,7 @@ return function (Framework $framework): void {
                 $client,
                 $requestFactory,
                 $streamFactory,
-                $cache
+                $cache,
             );
         },
     );
@@ -54,21 +54,21 @@ return function (Framework $framework): void {
             }
 
             return new Memory();
-        }
+        },
     );
 
     $framework->addDefinition(
         HttpClient::class,
-        create(GuzzleHttpClient::class)
+        create(GuzzleHttpClient::class),
     );
 
     $framework->addDefinition(
         HttpRequestFactory::class,
-        create(HttpFactory::class)
+        create(HttpFactory::class),
     );
 
     $framework->addDefinition(
         HttpStreamFactory::class,
-        get(HttpRequestFactory::class)
+        get(HttpRequestFactory::class),
     );
 };

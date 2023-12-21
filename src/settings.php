@@ -23,10 +23,12 @@ return function (Framework $framework): void {
         return;
     }
 
-    /** @var callable|null */
     $result = require $path;
 
-    if (is_callable($result)) {
-        $result($framework);
+    if (is_null($result)) {
+        return;
     }
+
+    assert(is_callable($result));
+    $result($framework);
 };

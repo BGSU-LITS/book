@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Lits\Action;
 
-use League\Period\Duration;
 use League\Period\Period;
 use Lits\Config\BookConfig;
 use Lits\LibCal\Data\Space\AvailabilitySpaceData;
@@ -59,7 +58,7 @@ trait TraitBookItem
             if ($category !== false) {
                 return new CategoryMeta(
                     $category,
-                    $this->settings['book']->categories
+                    $this->settings['book']->categories,
                 );
             }
         }
@@ -68,7 +67,7 @@ trait TraitBookItem
     }
 
     /**
-     * @return CategorySpaceData[]
+     * @return array<CategorySpaceData>
      * @throws HttpInternalServerErrorException
      * @throws HttpNotFoundException
      */
@@ -83,19 +82,19 @@ trait TraitBookItem
             throw new HttpNotFoundException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }
 
     /**
-     * @return AvailabilitySpaceData[]
+     * @return array<AvailabilitySpaceData>
      * @throws HttpInternalServerErrorException
      * @throws HttpNotFoundException
      */
@@ -103,7 +102,7 @@ trait TraitBookItem
         int $item_id,
         ?string $from,
         ?string $to,
-        bool $cache = false
+        bool $cache = false,
     ): array {
         if (\is_null($from) || \is_null($to)) {
             return [];
@@ -113,7 +112,7 @@ trait TraitBookItem
             $item_id,
             $from,
             $to,
-            $cache
+            $cache,
         );
 
         $item = \reset($result);
@@ -126,7 +125,7 @@ trait TraitBookItem
     }
 
     /**
-     * @return ItemSpaceData[]
+     * @return array<ItemSpaceData>
      * @throws HttpInternalServerErrorException
      * @throws HttpNotFoundException
      */
@@ -134,7 +133,7 @@ trait TraitBookItem
         int $item_id,
         string $from,
         string $to,
-        bool $cache
+        bool $cache,
     ): array {
         try {
             $client = $this->client->space()
@@ -150,19 +149,19 @@ trait TraitBookItem
             throw new HttpNotFoundException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }
 
     /**
-     * @param AvailabilitySpaceData[] $availability
+     * @param array<AvailabilitySpaceData> $availability
      * @throws HttpInternalServerErrorException
      */
     private function setDivisor(ItemMeta &$item, array $availability): void
@@ -174,14 +173,13 @@ trait TraitBookItem
         }
 
         try {
-            $item->lengthDivisor = Duration::create(
-                new Period($available->from, $available->to)
-            );
+            $period = Period::fromDate($available->from, $available->to);
+            $item->lengthDivisor = $period->dateInterval();
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }

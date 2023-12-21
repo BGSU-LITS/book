@@ -10,13 +10,10 @@ use Lits\Meta;
 
 final class CategoryMeta extends Meta
 {
-    public CategorySpaceData $data;
-
-    /** @param MetaConfig[] $configs */
-    public function __construct(CategorySpaceData $data, array $configs)
+    /** @param array<MetaConfig> $configs */
+    public function __construct(public CategorySpaceData $data, array $configs)
     {
         $this->id = $data->cid;
-        $this->data = $data;
         $this->setSlug($data->name);
         $this->setConfig($configs);
     }

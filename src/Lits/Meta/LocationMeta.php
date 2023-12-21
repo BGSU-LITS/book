@@ -13,31 +13,29 @@ use Lits\Meta;
 
 final class LocationMeta extends Meta
 {
-    public LocationSpaceData $data;
     public ?int $capacity = null;
     public ?\DateTimeInterface $availability = null;
 
-    /** @var ItemMeta[] $items */
+    /** @var array<ItemMeta> $items */
     public array $items = [];
 
-    /** @var CategoryMeta[] */
+    /** @var array<CategoryMeta> */
     public array $categories = [];
 
-    /** @var ZoneMeta[] */
+    /** @var array<ZoneMeta> */
     public array $zones = [];
 
-    /** @param MetaConfig[] $configs */
-    public function __construct(LocationSpaceData $data, array $configs)
+    /** @param array<MetaConfig> $configs */
+    public function __construct(public LocationSpaceData $data, array $configs)
     {
         $this->id = $data->lid;
-        $this->data = $data;
         $this->setSlug($data->name);
         $this->setConfig($configs);
     }
 
     /**
-     * @param ItemSpaceData[] $items
-     * @param MetaConfig[] $configs
+     * @param array<ItemSpaceData> $items
+     * @param array<MetaConfig> $configs
      */
     public function loadItems(array $items, array $configs): void
     {
@@ -55,8 +53,8 @@ final class LocationMeta extends Meta
     }
 
     /**
-     * @param CategorySpaceData[] $categories
-     * @param MetaConfig[] $configs
+     * @param array<CategorySpaceData> $categories
+     * @param array<MetaConfig> $configs
      */
     public function loadCategories(array $categories, array $configs): void
     {
@@ -65,7 +63,7 @@ final class LocationMeta extends Meta
         }
     }
 
-    /** @param ZoneSpaceData[] $zones */
+    /** @param array<ZoneSpaceData> $zones */
     public function loadZones(array $zones): void
     {
         $this->zones = [];
@@ -91,16 +89,16 @@ final class LocationMeta extends Meta
         }
     }
 
-    /** @param MetaConfig[] $configs */
+    /** @param array<MetaConfig> $configs */
     private function loadCategoriesMatches(
         CategorySpaceData $category,
-        array $configs
+        array $configs,
     ): void {
         foreach ($this->items as $item) {
             if ($item->data->groupId === $category->cid) {
                 $this->categories[] = new CategoryMeta(
                     $category,
-                    $configs
+                    $configs,
                 );
 
                 break;

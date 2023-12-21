@@ -13,15 +13,15 @@ final class BookConfig extends Config
     public bool $narrowAccessible = true;
     public bool $narrowPower = true;
 
-    /** @var MetaConfig[] $locations */
+    /** @var array<MetaConfig> $locations */
     public array $locations = [];
 
-    /** @var MetaConfig[] $categories */
+    /** @var array<MetaConfig> $categories */
     public array $categories = [];
 
-    /** @var MetaConfig[] $items */
+    /** @var array<MetaConfig> $items */
     public array $items = [];
 
-    /** @var QuestionConfig[] $questions */
+    /** @var array<QuestionConfig> $questions */
     public array $questions = [];
 }

@@ -8,12 +8,7 @@ use Lits\Config;
 
 final class QuestionConfig extends Config
 {
-    public string $id;
-    public string $type;
-
-    public function __construct(string $id, string $type)
+    public function __construct(public string $id, public string $type)
     {
-        $this->id = $id;
-        $this->type = $type;
     }
 }

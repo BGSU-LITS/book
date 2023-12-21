@@ -30,7 +30,7 @@ final class IndexAction extends Action
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
 
@@ -38,7 +38,7 @@ final class IndexAction extends Action
         $context['query'] = $this->request->getQueryParams();
         $context['locations'] = $this->findLocations(
             $locations,
-            $context['query']
+            $context['query'],
         );
 
         try {
@@ -47,15 +47,15 @@ final class IndexAction extends Action
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }
 
     /**
-     * @param LocationSpaceData[] $locations
-     * @param mixed[] $query
-     * @return LocationMeta[]
+     * @param array<LocationSpaceData> $locations
+     * @param array<mixed> $query
+     * @return array<LocationMeta>
      * @throws HttpInternalServerErrorException
      */
     private function findLocations(array $locations, array $query): array
@@ -73,17 +73,17 @@ final class IndexAction extends Action
 
             $meta = new LocationMeta(
                 $location,
-                $this->settings['book']->locations
+                $this->settings['book']->locations,
             );
 
             $meta->loadItems(
                 $this->getItems($meta->id, $query),
-                $this->settings['book']->items
+                $this->settings['book']->items,
             );
 
             $meta->loadCategories(
                 $this->getCategories($meta->id),
-                $this->settings['book']->categories
+                $this->settings['book']->categories,
             );
 
             $meta->loadZones($this->getZones($meta->id));

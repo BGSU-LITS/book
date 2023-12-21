@@ -15,20 +15,15 @@ use Lits\LibCal\Exception\ClientException;
 use Lits\LibCal\Exception\NotFoundException;
 use Lits\Meta\LocationMeta;
 use Lits\Service\ActionService;
-use Safe\DateTimeImmutable;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpInternalServerErrorException;
 use Slim\Exception\HttpNotFoundException;
 
 trait TraitBookLocation
 {
-    private Client $client;
-
-    public function __construct(ActionService $service, Client $client)
+    public function __construct(ActionService $service, private Client $client)
     {
         parent::__construct($service);
-
-        $this->client = $client;
     }
 
     /**
@@ -48,7 +43,7 @@ trait TraitBookLocation
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
 
@@ -56,7 +51,7 @@ trait TraitBookLocation
     }
 
     /**
-     * @param LocationSpaceData[] $locations
+     * @param array<LocationSpaceData> $locations
      * @throws HttpBadRequestException
      * @throws HttpInternalServerErrorException
      * @throws HttpNotFoundException
@@ -74,7 +69,7 @@ trait TraitBookLocation
         foreach ($locations as $location) {
             $meta = new LocationMeta(
                 $location,
-                $this->settings['book']->locations
+                $this->settings['book']->locations,
             );
 
             if ($meta->slug === $this->data['location']) {
@@ -86,8 +81,8 @@ trait TraitBookLocation
     }
 
     /**
-     * @param mixed[] $query
-     * @return ItemSpaceData[]
+     * @param array<mixed> $query
+     * @return array<ItemSpaceData>
      * @throws HttpInternalServerErrorException
      * @throws HttpNotFoundException
      */
@@ -102,19 +97,19 @@ trait TraitBookLocation
                 ->setBookable(!isset($query['seats']))
                 ->cache()
                 ->send();
-        } catch (ClientException $exception) {
+        } catch (ClientException) {
             return [];
         } catch (NotFoundException $exception) {
             throw new HttpNotFoundException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
 
@@ -122,7 +117,7 @@ trait TraitBookLocation
     }
 
     /**
-     * @return CategorySpaceData[]
+     * @return array<CategorySpaceData>
      * @throws HttpInternalServerErrorException
      * @throws HttpNotFoundException
      */
@@ -137,13 +132,13 @@ trait TraitBookLocation
             throw new HttpNotFoundException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
 
@@ -157,7 +152,7 @@ trait TraitBookLocation
     }
 
     /**
-     * @return ZoneSpaceData[]
+     * @return array<ZoneSpaceData>
      * @throws HttpInternalServerErrorException
      * @throws HttpNotFoundException
      */
@@ -172,18 +167,18 @@ trait TraitBookLocation
             throw new HttpNotFoundException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         } catch (\Throwable $exception) {
             throw new HttpInternalServerErrorException(
                 $this->request,
                 null,
-                $exception
+                $exception,
             );
         }
     }
 
-    /** @param mixed[] $query */
+    /** @param array<mixed> $query */
     private static function queryDate(array $query): string
     {
         if (
@@ -197,7 +192,7 @@ trait TraitBookLocation
         return 'next_only';
     }
 
-    /** @param mixed[] $query */
+    /** @param array<mixed> $query */
     private static function queryTime(array $query): string
     {
         if (
@@ -212,9 +207,9 @@ trait TraitBookLocation
     }
 
     /**
-     * @param ItemSpaceData[] $items
-     * @param mixed[] $query
-     * @return ItemSpaceData[]
+     * @param array<ItemSpaceData> $items
+     * @param array<mixed> $query
+     * @return array<ItemSpaceData>
      */
     private static function filterItems(array $items, array $query): array
     {
@@ -230,7 +225,7 @@ trait TraitBookLocation
         foreach ($items as $item) {
             $item->availability = self::filterAvailability(
                 $item->availability,
-                self::queryTime($query)
+                self::queryTime($query),
             );
 
             if ($item->availability !== []) {
@@ -242,12 +237,12 @@ trait TraitBookLocation
     }
 
     /**
-     * @param AvailabilitySpaceData[]|null $availability
-     * @return AvailabilitySpaceData[]
+     * @param array<AvailabilitySpaceData>|null $availability
+     * @return array<AvailabilitySpaceData>
      */
     private static function filterAvailability(
         ?array $availability,
-        string $time
+        string $time,
     ): array {
         if (\is_null($availability) || $time === '') {
             return (array) $availability;

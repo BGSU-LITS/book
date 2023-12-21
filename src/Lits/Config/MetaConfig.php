@@ -11,10 +11,7 @@ final class MetaConfig extends Config
 {
     use TraitMeta;
 
-    public int $id;
-
-    public function __construct(int $id)
+    public function __construct(public int $id)
     {
-        $this->id = $id;
     }
 }
