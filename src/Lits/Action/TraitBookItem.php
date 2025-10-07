@@ -37,7 +37,15 @@ trait TraitBookItem
             }
         }
 
-        throw new HttpNotFoundException($this->request);
+
+        $exception = new HttpNotFoundException($this->request);
+        $exception->setTitle('No times found for the specified location');
+        $exception->setDescription('
+            There may be no time available to book at the specified location
+            for the next ten days, or the link you followed may be incorrect.
+        ');
+
+        throw $exception;
     }
 
     /**
