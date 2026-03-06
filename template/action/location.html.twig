@@ -184,6 +184,7 @@
                 {%- elseif location.config.grouped and location.categories|length > 1 %}
                     {%- for category in location.categories %}
             <h2>{{ category.data.name }}</h2>
+            {{ category.config.description|raw }}
                         {%~ for item in location.items %}
                             {%- if item.data.groupId == category.data.cid %}
             {{- _self.outputItem(item, location, 'h3', query) }}
