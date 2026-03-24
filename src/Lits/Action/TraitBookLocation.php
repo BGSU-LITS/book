@@ -95,6 +95,9 @@ trait TraitBookLocation
                 ->setAccessibleOnly(isset($query['accessible']))
                 ->setPowered(isset($query['powered']))
                 ->setBookable(!isset($query['seats']))
+                ->setVisibility(
+                    isset($query['private']) ? 'private' : 'public'
+                )
                 ->cache()
                 ->send();
         } catch (ClientException) {

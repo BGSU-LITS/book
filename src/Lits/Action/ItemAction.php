@@ -34,7 +34,10 @@ final class ItemAction extends Action
         $context['location'] = $this->findLocation();
 
         $context['location']->loadItems(
-            $this->getItems($context['location']->id, ['seats' => true]),
+            $this->getItems($context['location']->id, [
+                'private' => true,
+                'seats' => true,
+            ]),
             $this->settings['book']->items,
         );
 

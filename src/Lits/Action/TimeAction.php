@@ -127,7 +127,10 @@ final class TimeAction extends Action
 
         $location = $this->findLocation();
         $location->loadItems(
-            $this->getItems($location->id, ['seats' => true]),
+            $this->getItems($location->id, [
+                'private' => true,
+                'seats' => true
+            ]),
             $this->settings['book']->items,
         );
 
